@@ -1,7 +1,11 @@
 package com.example.smsapp.ui.conversation
 
-import android.view.*
-import androidx.recyclerview.widget.*
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import com.example.smsapp.R
 import com.example.smsapp.data.ConversationSummary
 import com.example.smsapp.databinding.ItemConversationBinding
 import java.text.SimpleDateFormat
@@ -20,6 +24,7 @@ class ConvAdapter(
             tvPreview.text = c.lastBody
             tvTime.text    = fmt.format(Date(c.lastTime))
             tvCount.text   = c.total.toString()
+            ivAvatar.setImageResource(R.drawable.ic_default_profile)
             root.setOnClickListener { onClick(c) }
         }
     }

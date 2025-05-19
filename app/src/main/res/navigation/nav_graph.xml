@@ -19,4 +19,8 @@
             android:name="address"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/spamFragment"
+        android:name="com.example.smsapp.ui.spam.SpamFragment"
+        android:label="스팸 메시지" />
 </navigation>
