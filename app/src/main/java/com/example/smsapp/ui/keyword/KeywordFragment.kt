@@ -1,9 +1,9 @@
 package com.example.smsapp.ui.keyword
 
+import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smsapp.R
+import com.example.smsapp.data.KeywordEntity
 import com.example.smsapp.databinding.FragmentKeywordBinding
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -38,36 +39,49 @@ class KeywordFragment : Fragment(R.layout.fragment_keyword) {
         tb.setTitleTextColor(Color.BLACK)
         tb.isTitleCentered = true
 
-        /* ─ ViewModel + RecyclerView ─ */
+        /* ─ ViewModel ─ */
         vm = ViewModelProvider(
             this,
             KeywordViewModel.Factory(requireActivity().application, args.isWhitelist)
         )[KeywordViewModel::class.java]
 
-        adapter = KeywordAdapter { kw ->
-            MaterialAlertDialogBuilder(requireContext())
-                .setMessage("‘${kw.word}’ 키워드를 삭제할까요?")
-                .setPositiveButton("삭제") { _, _ -> vm.delete(kw) }
-                .setNegativeButton("취소", null)
-                .show()
-        }
+        /* ─ RecyclerView ─ */
+        adapter = KeywordAdapter { kw -> confirmDelete(kw) }
         b.rvKeyword.layoutManager = LinearLayoutManager(requireContext())
         b.rvKeyword.adapter = adapter
         vm.words.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
         /* ─ 입력 + 추가 ─ */
         b.btnAdd.setOnClickListener {
-            val w = b.etKeyword.text.toString().trim()
-            if (w.isEmpty()) {
-                Toast.makeText(requireContext(), "키워드를 입력하세요", Toast.LENGTH_SHORT).show()
-            } else {
-                vm.add(w)
+            val word = b.etKeyword.text.toString().trim()
+            if (word.isNotEmpty()) {
+                vm.add(word)
                 b.etKeyword.text?.clear()
             }
         }
         b.etKeyword.addTextChangedListener { txt ->
             b.btnAdd.isEnabled = !txt.isNullOrBlank()
         }
+    }
+
+    /* ─ 키워드 삭제 확인 ─ */
+    private fun confirmDelete(kw: KeywordEntity) {
+        val dlg = MaterialAlertDialogBuilder(requireContext(), R.style.DialogTheme_SMSApp)
+            .setMessage("‘${kw.word}’ 키워드를 삭제할까요?")
+            .setPositiveButton("삭제", null)
+            .setNegativeButton("취소", null)
+            .create()
+
+        dlg.setOnShowListener {
+            val ok     = dlg.getButton(AlertDialog.BUTTON_POSITIVE)
+            val cancel = dlg.getButton(AlertDialog.BUTTON_NEGATIVE)
+            val black  = resources.getColor(R.color.black, null)
+            ok.setTextColor(black); cancel.setTextColor(black)
+
+            ok.setOnClickListener { vm.delete(kw); dlg.dismiss() }
+            cancel.setOnClickListener { dlg.dismiss() }
+        }
+        dlg.show()
     }
 
     override fun onDestroyView() { _binding = null; super.onDestroyView() }

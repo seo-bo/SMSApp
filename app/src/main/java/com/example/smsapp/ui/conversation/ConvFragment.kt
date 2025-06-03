@@ -1,9 +1,11 @@
 package com.example.smsapp.ui.conversation
 
 import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Canvas
 import android.os.Bundle
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -19,7 +21,6 @@ import com.example.smsapp.data.SmsEntity
 import com.example.smsapp.databinding.FragmentConversationsBinding
 import com.example.smsapp.ui.viewmodel.ConvViewModel
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
@@ -57,8 +58,8 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         /* ─ Insets ─ */
         ViewCompat.setOnApplyWindowInsetsListener(
             b.convRoot as CoordinatorLayout
-        ) { v, insets ->
-            val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        ) { v, ins ->
+            val sys = ins.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(sys.left, sys.top, sys.right, sys.bottom)
             WindowInsetsCompat.CONSUMED
         }
@@ -66,13 +67,12 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         /* ─ RecyclerView ─ */
         b.rvConv.layoutManager = LinearLayoutManager(requireContext())
         b.rvConv.adapter = adapter
-        // ❶ 얇은 회색 Divider 추가
         DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL).apply {
             ContextCompat.getDrawable(requireContext(), R.drawable.divider_conv)?.let { setDrawable(it) }
             b.rvConv.addItemDecoration(this)
         }
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-            override fun onChanged() = b.rvConv.scrollToPosition(0)
+            override fun onChanged()                        = b.rvConv.scrollToPosition(0)
             override fun onItemRangeInserted(p: Int, c: Int) = onChanged()
         })
 
@@ -91,31 +91,48 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
 
     /* ───────── 대화 시작 다이얼로그 ───────── */
     private fun showComposeDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_start_conversation, null, false)
-        val et = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etPhone)
+        val dialogV = layoutInflater.inflate(R.layout.dialog_start_conversation, null, false)
+        val et = dialogV.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etPhone)
 
-        val dialog = MaterialAlertDialogBuilder(requireContext(), R.style.DialogTheme_SMSApp)
-            .setView(dialogView)
+        val dlg = MaterialAlertDialogBuilder(requireContext(), R.style.DialogTheme_SMSApp)
+            .setView(dialogV)
             .setPositiveButton("확인", null)
             .setNegativeButton("취소", null)
             .create()
 
-        dialog.setOnShowListener {
-            val ok   = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            val cancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+        dlg.setOnShowListener {
+            val ok     = dlg.getButton(AlertDialog.BUTTON_POSITIVE)
+            val cancel = dlg.getButton(AlertDialog.BUTTON_NEGATIVE)
+            val black  = ContextCompat.getColor(requireContext(), R.color.black)
+            ok.setTextColor(black); cancel.setTextColor(black)
+
             ok.setOnClickListener {
                 val phone = et.text.toString().trim()
-                if (phone.isEmpty()) et.error = "번호를 입력하세요"
-                else {
+                if (phone.isEmpty()) {
+                    et.error = "번호를 입력하세요"
+                } else {
                     findNavController().navigate(
                         ConvFragmentDirections.actionConvFragmentToThreadFragment(phone)
                     )
-                    dialog.dismiss()
+                    hideKeyboardFrom(et)
+                    dlg.dismiss()
                 }
             }
-            cancel.setOnClickListener { dialog.dismiss() }
+            cancel.setOnClickListener {
+                hideKeyboardFrom(et)          // ✅ 취소 시에도 확실히 내려감
+                dlg.dismiss()
+            }
         }
-        dialog.show()
+
+        dlg.setOnDismissListener { hideKeyboardFrom(et) }    // 외부 탭 닫힘 시
+        dlg.show()
+    }
+
+    /* ───────── 키보드 강제 숨김 ───────── */
+    private fun hideKeyboardFrom(view: View?) {
+        view ?: return
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     /* ───────── Swipe to delete ───────── */
@@ -124,20 +141,26 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         val bg   = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, tgt: RecyclerView.ViewHolder) = false
+            override fun onMove(
+                rv: RecyclerView, vh: RecyclerView.ViewHolder, tgt: RecyclerView.ViewHolder
+            ) = false
 
-            override fun onChildDraw(c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
-                                     dx: Float, dy: Float, state: Int, active: Boolean) {
+            override fun onChildDraw(
+                c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
+                dx: Float, dy: Float, state: Int, active: Boolean
+            ) {
                 val item   = vh.itemView
                 val margin = (item.height - icon.intrinsicHeight) / 2
+                c.save()
                 c.clipRect(item.left, item.top, item.left + dx.toInt(), item.bottom)
                 c.drawColor(bg)
                 icon.setBounds(
                     item.left + margin, item.top + margin,
                     item.left + margin + icon.intrinsicWidth,
-                    item.top + margin + icon.intrinsicHeight
+                    item.top  + margin + icon.intrinsicHeight
                 )
                 icon.draw(c)
+                c.restore()
                 super.onChildDraw(c, rv, vh, dx, dy, state, active)
             }
 
@@ -147,18 +170,17 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
                 Snackbar.make(b.root, "대화방 삭제됨", Snackbar.LENGTH_LONG)
                     .setAction("Undo") {
                         viewLifecycleOwner.lifecycleScope.launch {
-                            vm.addNormal(
-                                SmsEntity(address = convo.address, body = "", type = 1)
-                            )
+                            vm.addNormal(SmsEntity(address = convo.address, body = "", type = 1))
                         }
                     }.show()
             }
         }).attachToRecyclerView(b.rvConv)
     }
 
-    /* ─ 메뉴(스팸함) ─ */
+    /* 메뉴 (스팸함) */
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) =
         inflater.inflate(R.menu.menu_conv, menu)
+
     override fun onOptionsItemSelected(item: MenuItem) =
         if (item.itemId == R.id.menu_spam) {
             findNavController().navigate(R.id.spamFragment); true

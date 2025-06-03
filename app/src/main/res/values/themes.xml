@@ -8,12 +8,11 @@
         <item name="colorPrimaryContainer">@color/primary_variant</item>
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorSurface">@color/surface</item>
-
         <item name="android:statusBarColor">@color/primary_variant</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 
-    <!-- Material 3 AlertDialog (둥근 모서리 + 버튼 색) -->
+    <!-- Material 3 AlertDialog : 둥근모서리 + 버튼색 -->
     <style name="DialogTheme.SMSApp" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="shapeAppearanceCornerLarge">@dimen/corner_16</item>
         <item name="buttonBarPositiveButtonStyle">@style/DialogButton.Positive</item>
@@ -29,12 +28,12 @@
         <item name="boxCornerRadiusBottomEnd">12dp</item>
     </style>
 
-    <!-- 다이얼로그 버튼(보라색–secondary) -->
+    <!-- ✅ 다이얼로그 버튼 – 검은색 -->
     <style name="DialogButton.Positive" parent="Widget.Material3.Button.TextButton">
-        <item name="android:textColor">@color/secondary</item>
+        <item name="android:textColor">@color/black</item>
     </style>
     <style name="DialogButton.Negative" parent="Widget.Material3.Button.TextButton">
-        <item name="android:textColor">@color/secondary</item>
+        <item name="android:textColor">@color/black</item>
     </style>
     <style name="Shape.Corner12" parent="">
         <item name="cornerSize">12dp</item>
