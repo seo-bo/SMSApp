@@ -14,7 +14,7 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <!-- ✅ 스위치용 ‘초록’(Green) -->
-    <color name="green_500">#4CAF50</color> <!-- thumb ON -->
-    <color name="green_200">#A5D6A7</color> <!-- track ON -->
+    <!-- ✅ 스위치 ON 상태용 초록 -->
+    <color name="green_500">#4CAF50</color> <!-- thumb -->
+    <color name="green_200">#A5D6A7</color> <!-- track -->
 </resources>
