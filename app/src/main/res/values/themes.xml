@@ -36,5 +36,7 @@
     <style name="DialogButton.Negative" parent="Widget.Material3.Button.TextButton">
         <item name="android:textColor">@color/secondary</item>
     </style>
-
+    <style name="Shape.Corner12" parent="">
+        <item name="cornerSize">12dp</item>
+    </style>
 </resources>

@@ -12,7 +12,8 @@ class SpamViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = SmsRepository(
         SmsDatabase.get(app).smsDao(),
-        SmsDatabase.get(app).spamDao()
+        SmsDatabase.get(app).spamDao(),
+        SmsDatabase.get(app).keywordDao()
     )
 
     /** 스팸함 “방” 리스트 */

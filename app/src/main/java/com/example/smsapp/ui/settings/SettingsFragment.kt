@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.smsapp.R
 import com.example.smsapp.databinding.FragmentSettingsBinding
 import com.example.smsapp.util.AppPrefs
@@ -23,12 +24,11 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private lateinit var vm: SettingsViewModel
 
-    /* ────────────────────────────── */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSettingsBinding.bind(view)
 
-        /* 1. Toolbar : 뒤로가기 아이콘 */
+        /* ─ Toolbar ─ */
         val tb: MaterialToolbar = b.toolbar
         (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
         (requireActivity() as AppCompatActivity)
@@ -40,7 +40,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         tb.setTitleTextColor(Color.BLACK)
         tb.isTitleCentered = true
 
-        /* 2. Insets */
+        /* ─ Insets ─ */
         ViewCompat.setOnApplyWindowInsetsListener(
             view.findViewById<CoordinatorLayout>(R.id.settingsRoot)
         ) { v, ins ->
@@ -49,29 +49,31 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             WindowInsetsCompat.CONSUMED
         }
 
-        /* 3. ViewModel */
+        /* ─ ViewModel ─ */
         vm = ViewModelProvider(this)[SettingsViewModel::class.java]
         vm.total.observe(viewLifecycleOwner) { updateStats() }
         vm.spam.observe(viewLifecycleOwner)  { updateStats() }
 
-        /* 4. 로컬 스팸 차단 토글 */
+        /* ─ 로컬 스팸 차단 ─ */
         val swLocal = b.swLocal as SwitchMaterial
         swLocal.isChecked = AppPrefs.isLocalFilterEnabled(requireContext())
         swLocal.setOnCheckedChangeListener { _, on ->
             AppPrefs.setLocalFilterEnabled(requireContext(), on)
         }
 
-        /* 5. 고급 스팸 차단 – 토글만 */
+        /* ─ 고급 스팸 차단 (미구현) ─ */
         b.swAdvanced.setOnCheckedChangeListener { _, _ -> }
 
-        /* 6. 블랙/화이트 리스트 버튼 – 알림 */
+        /* ─ 키워드 화면 이동 ─ */
         b.btnBlacklist.setOnClickListener {
-            android.widget.Toast.makeText(requireContext(),
-                "추후 구현 예정입니다", android.widget.Toast.LENGTH_SHORT).show()
+            val action = SettingsFragmentDirections
+                .actionSettingsFragmentToKeywordFragment(false)
+            findNavController().navigate(action)
         }
         b.btnWhitelist.setOnClickListener {
-            android.widget.Toast.makeText(requireContext(),
-                "추후 구현 예정입니다", android.widget.Toast.LENGTH_SHORT).show()
+            val action = SettingsFragmentDirections
+                .actionSettingsFragmentToKeywordFragment(true)
+            findNavController().navigate(action)
         }
     }
 

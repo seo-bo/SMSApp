@@ -1,26 +1,30 @@
 package com.example.smsapp.ui.settings
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import com.example.smsapp.data.SmsDatabase
 import com.example.smsapp.repository.SmsRepository
 
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = SmsRepository(
-        SmsDatabase.get(app).smsDao(),
-        SmsDatabase.get(app).spamDao()
+        SmsDatabase.get(app).smsDao(),      // 일반 SMS DAO
+        SmsDatabase.get(app).spamDao(),     // 스팸 DAO
+        SmsDatabase.get(app).keywordDao()   // 🔹 키워드 DAO (추가)
     )
 
-    /** 스팸·일반 개수 */
-    val spam: LiveData<Int>   = repo.totalSpamCount
+    /** 스팸 · 일반 건수 */
+    val spam:   LiveData<Int> = repo.totalSpamCount
     val normal: LiveData<Int> = repo.totalNormalCount
 
     /** 전체 = 스팸 + 일반 */
     val total: LiveData<Int> = MediatorLiveData<Int>().apply {
-        var s = 0; var n = 0
+        var s = 0
+        var n = 0
         fun update() { value = s + n }
-        addSource(spam ) { s = it; update() }
+        addSource(spam)   { s = it; update() }
         addSource(normal) { n = it; update() }
     }
 }

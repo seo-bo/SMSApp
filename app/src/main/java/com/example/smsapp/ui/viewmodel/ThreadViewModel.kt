@@ -16,7 +16,8 @@ class ThreadViewModel(
 
     private val repo = SmsRepository(
         SmsDatabase.get(app).smsDao(),
-        SmsDatabase.get(app).spamDao()
+        SmsDatabase.get(app).spamDao(),
+        SmsDatabase.get(app).keywordDao()
     )
 
     /** 스레드 메시지 LiveData */

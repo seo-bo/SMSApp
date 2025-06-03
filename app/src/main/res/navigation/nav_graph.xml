@@ -12,7 +12,6 @@
         <action
             android:id="@+id/action_convFragment_to_threadFragment"
             app:destination="@id/threadFragment" />
-        <!-- 추가: 설정 화면 이동 -->
         <action
             android:id="@+id/action_convFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
@@ -40,9 +39,22 @@
             android:defaultValue="false" />
     </fragment>
 
-    <!-- 설정 -->
+    <!-- ✅ Settings → Keyword 로 가는 새 액션 -->
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.example.smsapp.ui.settings.SettingsFragment"
-        tools:layout="@layout/fragment_settings" />
+        android:name="com.example.smsapp.ui.settings.SettingsFragment">
+        <action
+            android:id="@+id/action_settingsFragment_to_keywordFragment"
+            app:destination="@id/keywordFragment" />
+    </fragment>
+
+    <!-- 키워드 관리 -->
+    <fragment
+        android:id="@+id/keywordFragment"
+        android:name="com.example.smsapp.ui.keyword.KeywordFragment">
+        <argument
+            android:name="isWhitelist"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
 </navigation>

@@ -1,4 +1,3 @@
-// SmsDatabase.kt
 package com.example.smsapp.data
 
 import android.content.Context
@@ -7,14 +6,19 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [SmsEntity::class, SpamEntity::class],
-    /* ▼ (Fix) 기존 2 → 3으로 복구 */
-    version = 3,
+    entities = [
+        SmsEntity::class,
+        SpamEntity::class,
+        KeywordEntity::class
+    ],
+    version = 5,                      // ⬅️ 4 → 5
     exportSchema = false
 )
 abstract class SmsDatabase : RoomDatabase() {
-    abstract fun smsDao():  SmsDao
-    abstract fun spamDao(): SpamDao
+
+    abstract fun smsDao():     SmsDao
+    abstract fun spamDao():    SpamDao
+    abstract fun keywordDao(): KeywordDao
 
     companion object {
         @Volatile private var INSTANCE: SmsDatabase? = null
@@ -25,11 +29,16 @@ abstract class SmsDatabase : RoomDatabase() {
                     ctx.applicationContext,
                     SmsDatabase::class.java, "sms.db"
                 )
-                    // v1→v2, v2→v3 모두 등록
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5          // ⬅️ 새 마이그레이션
+                    )
                     .build().also { INSTANCE = it }
             }
 
+        /* ───────── v1→v2 ───────── */
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -45,10 +54,44 @@ abstract class SmsDatabase : RoomDatabase() {
             }
         }
 
-        /* ▼ (Fix) 새로 추가 – 버전 2 → 3 로직이 실제로 없으면 빈 migration이라도 등록 */
+        /* ───────── v2→v3 ───────── */
         private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) { /* NO-OP */ }
+        }
+
+        /* ───────── v3→v4 ───────── */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                /* 현재 스키마 변화 없음 → NO-OP */
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS keyword (
+                        id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        word        TEXT NOT NULL,
+                        isWhitelist INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                /* 잘못: UNIQUE 빠짐 → 그대로 두고 v4→v5에서 수정 */
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_keyword_word_isWhitelist " +
+                            "ON keyword(word,isWhitelist)"
+                )
+            }
+        }
+
+        /* ───────── v4→v5 ───────── */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                /* ① 기존 non-unique 인덱스 제거 */
+                db.execSQL(
+                    "DROP INDEX IF EXISTS index_keyword_word_isWhitelist"
+                )
+                /* ② UNIQUE 인덱스로 재생성 */
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " +
+                            "index_keyword_word_isWhitelist " +
+                            "ON keyword(word,isWhitelist)"
+                )
             }
         }
     }

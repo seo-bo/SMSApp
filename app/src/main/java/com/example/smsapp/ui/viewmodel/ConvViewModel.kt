@@ -14,7 +14,8 @@ class ConvViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = SmsRepository(
         SmsDatabase.get(app).smsDao(),
-        SmsDatabase.get(app).spamDao()
+        SmsDatabase.get(app).spamDao(),
+        SmsDatabase.get(app).keywordDao()
     )
 
     /** 대화방 목록 LiveData */
