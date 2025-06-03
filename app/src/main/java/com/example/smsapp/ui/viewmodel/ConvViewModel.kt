@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smsapp.data.SmsDatabase
 import com.example.smsapp.data.SmsEntity
-import com.example.smsapp.data.SpamEntity
 import com.example.smsapp.repository.SmsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,5 +29,12 @@ class ConvViewModel(app: Application) : AndroidViewModel(app) {
     /** 대화방 삭제 */
     fun deleteConversation(addr: String) = viewModelScope.launch(Dispatchers.IO) {
         repo.deleteConversation(addr)
+    }
+
+    /* ───────────────────────────────────────────────
+       ⬇️  Undo(복원)용:  기존 Repo 의 addNormal 래퍼
+       ─────────────────────────────────────────────── */
+    fun addNormal(e: SmsEntity) = viewModelScope.launch(Dispatchers.IO) {
+        repo.addNormal(e)
     }
 }

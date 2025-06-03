@@ -19,36 +19,28 @@ class ThreadViewModel(
         SmsDatabase.get(app).spamDao()
     )
 
-    /** 일반 or 스팸 스레드 선택 */
+    /** 스레드 메시지 LiveData */
     val messages: LiveData<List<SmsEntity>> = if (!isSpam) {
         repo.messages(address)
     } else {
-        // spamDao.getThread → map to SmsEntity(type=1)
-        val source = repo.spamThread(address)
-        val result = MediatorLiveData<List<SmsEntity>>()
-        result.addSource(source) { list ->
-            result.value = list.map { se ->
-                SmsEntity(
-                    id        = se.id,
-                    address   = se.address,
-                    body      = se.body,
-                    timestamp = se.timestamp,
-                    type      = 1
-                )
-            }
+        repo.spamThread(address).map { list ->
+            list.map { s -> SmsEntity(s.id, s.address, s.body, s.timestamp, 1) }
         }
-        result
     }
 
-    /** 일반 메시지 전송 only */
+    /** 전송 */
     fun send(body: String) = viewModelScope.launch(Dispatchers.IO) {
         if (!isSpam) {
-            repo.addNormal(
-                SmsEntity(address = address, body = body, type = 2)
-            )
+            repo.addNormal(SmsEntity(address = address, body = body, type = 2))
         }
     }
 
+    /** 개별 메시지 삭제 (일반만) */
+    fun delete(id: Long) = viewModelScope.launch(Dispatchers.IO) {
+        if (!isSpam) repo.deleteMessage(id)
+    }
+
+    /* ---------- Factory ---------- */
     class Factory(
         private val app: Application,
         private val address: String,

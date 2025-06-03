@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<com.google.android.material.textfield.TextInputLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="16dp"
+    style="@style/Widget.SMSApp.TextInput"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:hint="수신자 번호">
 
-<EditText
-android:id="@+id/etPhone"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:hint="수신자 번호"
-android:inputType="phone"
-android:maxLines="1"/>
-    </LinearLayout>
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/etPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:maxLines="1" />
+</com.google.android.material.textfield.TextInputLayout>

@@ -3,7 +3,7 @@ package com.example.smsapp.data
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
-/** 대화 목록에서 쓰는 요약 DTO */
+/** 대화 목록 요약 DTO */
 data class ConversationSummary(
     val address:  String,
     val lastBody: String,
@@ -18,11 +18,11 @@ interface SmsDao {
     @Query(
         """
         SELECT address,
-               MAX(timestamp)                                AS lastTime,
+               MAX(timestamp) AS lastTime,
                (SELECT body FROM sms s2
                  WHERE s2.address = sms.address
-                 ORDER BY timestamp DESC LIMIT 1)            AS lastBody,
-               COUNT(*)                                      AS total
+                 ORDER BY timestamp DESC LIMIT 1) AS lastBody,
+               COUNT(*) AS total
         FROM sms
         GROUP BY address
         ORDER BY lastTime DESC
@@ -37,6 +37,11 @@ interface SmsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(e: SmsEntity)
 
+    /** 메시지 한 건 삭제 */
+    @Query("DELETE FROM sms WHERE id = :msgId")
+    suspend fun deleteMessage(msgId: Long)
+
+    /** 주소 전체 삭제 */
     @Query("DELETE FROM sms WHERE address = :addr")
     suspend fun deleteConversation(addr: String)
 }

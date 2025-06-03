@@ -1,5 +1,7 @@
 package com.example.smsapp.ui.thread
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.view.View
@@ -13,9 +15,14 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.smsapp.R
+import com.example.smsapp.data.SmsEntity
 import com.example.smsapp.databinding.FragmentThreadBinding
 import com.example.smsapp.ui.viewmodel.ThreadViewModel
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ThreadFragment : Fragment(R.layout.fragment_thread) {
 
@@ -30,25 +37,16 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentThreadBinding.bind(view)
 
-        /* ─────────────── 1. Toolbar ─────────────── */
-        val toolbar: MaterialToolbar = b.toolbar
-        (requireActivity() as AppCompatActivity).setSupportActionBar(toolbar)
-        toolbar.apply {
-            title = if (args.isSpam) "스팸: ${args.address}" else args.address
-            setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
-            navigationIcon?.setTint(android.graphics.Color.BLACK) // ← 검정색 화살표
-            setNavigationOnClickListener {
-                // ◀ 누르면 키보드 숨기고 뒤로
-                val imm = requireContext()
-                    .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                val token = requireActivity().currentFocus?.windowToken ?: b.root.windowToken
-                imm.hideSoftInputFromWindow(token, 0)
-                findNavController().navigateUp()
-            }
-            isTitleCentered = true
-        }
+        /* ───────── Toolbar ───────── */
+        val tb: MaterialToolbar = b.toolbar
+        (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
+        tb.title = args.address                          // 전화번호만 표시
+        tb.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
+        tb.navigationIcon?.setTint(android.graphics.Color.BLACK)
+        tb.setNavigationOnClickListener { hideKeyboardAndBack() }
+        tb.isTitleCentered = false                       // 왼쪽 정렬
 
-        /* ─────────────── 2. ViewModel ─────────────── */
+        /* ───────── ViewModel ───────── */
         vm = ViewModelProvider(
             this,
             ThreadViewModel.Factory(
@@ -58,36 +56,69 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
             )
         )[ThreadViewModel::class.java]
 
-        /* ─────────────── 3. RecyclerView ─────────────── */
-        adapter = MessageAdapter()
-        b.rvMsg.layoutManager = LinearLayoutManager(requireContext())
-            .apply { reverseLayout = true }
+        /* ───────── RecyclerView ───────── */
+        adapter = MessageAdapter(::onMessageLongPress)
+        b.rvMsg.layoutManager = LinearLayoutManager(requireContext()).apply { reverseLayout = true }
         b.rvMsg.adapter = adapter
-
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onChanged()                        = b.rvMsg.scrollToPosition(0)
             override fun onItemRangeInserted(p: Int, c: Int) = onChanged()
         })
-
         vm.messages.observe(viewLifecycleOwner) { adapter.submit(it) }
 
-        /* ─────────────── 4. 입력창 & 전송 ─────────────── */
+        /* ───────── 입력/전송 ───────── */
         if (args.isSpam) {
-            b.inputContainer.visibility = View.GONE   // 읽기 전용
+            b.inputContainer.visibility = View.GONE        // 스팸 스레드는 읽기 전용
         } else {
             b.btnSend.setOnClickListener {
-                val text = b.etMessage.text.toString().trim()
-                if (text.isNotEmpty()) {
-                    vm.send(text)
+                val txt = b.etMessage.text.toString().trim()
+                if (txt.isNotEmpty()) {
+                    vm.send(txt)
                     b.etMessage.text?.clear()
                 }
             }
         }
 
-        /* ─────────────── 5. 입력창 높이만큼 패딩 ─────────────── */
+        /* ───────── 입력창 높이만큼 패딩 ───────── */
         b.inputContainer.doOnLayout { bar ->
             b.rvMsg.setPadding(0, 0, 0, bar.height)
         }
+    }
+
+    /* ─────────────────────────────────────────────
+       메시지 길게 눌렀을 때 BottomSheet (Copy / Delete)
+       ───────────────────────────────────────────── */
+    private fun onMessageLongPress(msg: SmsEntity, anchor: View) {
+        if (args.isSpam) return       // 스팸 스레드는 조작 금지
+
+        val sheet = BottomSheetDialog(requireContext())
+        val content = layoutInflater.inflate(R.layout.sheet_message_actions, null, false)
+        sheet.setContentView(content)
+
+        val bar = content as BottomNavigationView
+        bar.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.actionCopy -> {
+                    val cm = requireContext()
+                        .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText("sms", msg.body))
+                    Snackbar.make(b.root, "Copied", Snackbar.LENGTH_SHORT).show()
+                }
+                R.id.actionDelete -> vm.delete(msg.id)
+            }
+            sheet.dismiss()
+            true
+        }
+
+        sheet.show()
+    }
+
+    /* ───────── 헬퍼: 키보드 숨기고 뒤로 ───────── */
+    private fun hideKeyboardAndBack() {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val token = requireActivity().currentFocus?.windowToken ?: b.root.windowToken
+        imm.hideSoftInputFromWindow(token, 0)
+        findNavController().navigateUp()
     }
 
     override fun onDestroyView() {

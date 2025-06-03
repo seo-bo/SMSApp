@@ -2,11 +2,8 @@ package com.example.smsapp.ui.conversation
 
 import android.app.AlertDialog
 import android.graphics.Canvas
-import android.graphics.Color
 import android.os.Bundle
 import android.view.*
-import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -14,21 +11,25 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.*
 import com.example.smsapp.R
+import com.example.smsapp.data.SmsEntity
 import com.example.smsapp.databinding.FragmentConversationsBinding
 import com.example.smsapp.ui.viewmodel.ConvViewModel
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 class ConvFragment : Fragment(R.layout.fragment_conversations) {
 
-    /* ---------- 뷰 바인딩 / VM ---------- */
     private var _binding: FragmentConversationsBinding? = null
     private val b get() = _binding!!
-    private lateinit var vm: ConvViewModel
 
-    /* ---------- RecyclerView 어댑터 ---------- */
+    private lateinit var vm: ConvViewModel
     private val adapter = ConvAdapter { convo ->
         findNavController().navigate(
             ConvFragmentDirections.actionConvFragmentToThreadFragment(convo.address)
@@ -37,26 +38,23 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)      // 우측 스팸 아이콘 메뉴 사용
+        setHasOptionsMenu(true)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentConversationsBinding.bind(view)
-        vm      = ViewModelProvider(this)[ConvViewModel::class.java]
+        vm = ViewModelProvider(this)[ConvViewModel::class.java]
 
-        /* ─────────────── 1. Toolbar ─────────────── */
-        val toolbar = b.toolbar as MaterialToolbar
-        (requireActivity() as AppCompatActivity).setSupportActionBar(toolbar)
-
-        // 왼쪽: 톱니바퀴 → 설정
-        toolbar.setNavigationIcon(R.drawable.ic_baseline_settings_24)
-        toolbar.setNavigationOnClickListener {
+        /* ─ Toolbar ─ */
+        val tb: MaterialToolbar = b.toolbar
+        (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
+        tb.setNavigationIcon(R.drawable.ic_baseline_settings_24)
+        tb.setNavigationOnClickListener {
             findNavController().navigate(R.id.action_convFragment_to_settingsFragment)
         }
-        toolbar.setTitleTextColor(Color.BLACK)
 
-        /* ─────────────── 2. Insets ─────────────── */
+        /* ─ Insets ─ */
         ViewCompat.setOnApplyWindowInsetsListener(
             b.convRoot as CoordinatorLayout
         ) { v, insets ->
@@ -65,106 +63,78 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             WindowInsetsCompat.CONSUMED
         }
 
-        /* ─────────────── 3. RecyclerView ─────────────── */
+        /* ─ RecyclerView ─ */
         b.rvConv.layoutManager = LinearLayoutManager(requireContext())
-        b.rvConv.adapter       = adapter
-
+        b.rvConv.adapter = adapter
+        // ❶ 얇은 회색 Divider 추가
+        DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL).apply {
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider_conv)?.let { setDrawable(it) }
+            b.rvConv.addItemDecoration(this)
+        }
         adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-            override fun onChanged()                 = b.rvConv.scrollToPosition(0)
+            override fun onChanged() = b.rvConv.scrollToPosition(0)
             override fun onItemRangeInserted(p: Int, c: Int) = onChanged()
         })
 
-        /* ─────────────── 4. FAB (새 대화) ─────────────── */
-        b.fabCompose.setOnClickListener { showComposeDialog() }
-
-        /* ─────────────── 5. LiveData ─────────────── */
+        /* ─ LiveData ─ */
         vm.rooms.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
-            b.emptyContainer.visibility =
-                if (list.isEmpty()) View.VISIBLE else View.GONE
+            b.emptyContainer.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        /* ─────────────── 6. 스와이프 삭제 ─────────────── */
+        /* ─ FAB ─ */
+        b.fabCompose.setOnClickListener { showComposeDialog() }
+
+        /* ─ Swipe 삭제 ─ */
         attachSwipeToDelete()
     }
 
-    /* ======================================================================
-       Compose(새 대화) 다이얼로그
-       ====================================================================== */
+    /* ───────── 대화 시작 다이얼로그 ───────── */
     private fun showComposeDialog() {
-        val dialogView = layoutInflater.inflate(
-            R.layout.dialog_new_conversation, null, false
-        )
-        val etPhone = dialogView.findViewById<EditText>(R.id.etPhone)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_start_conversation, null, false)
+        val et = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etPhone)
 
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("새 대화")
+        val dialog = MaterialAlertDialogBuilder(requireContext(), R.style.DialogTheme_SMSApp)
             .setView(dialogView)
-            .setPositiveButton("확인") { d, _ ->
-                val phone = etPhone.text.toString().trim()
-                if (phone.isEmpty()) {
-                    Toast.makeText(requireContext(),
-                        "번호를 입력하세요", Toast.LENGTH_SHORT
-                    ).show()
-                    return@setPositiveButton
-                }
-                val action = ConvFragmentDirections
-                    .actionConvFragmentToThreadFragment(phone)
-                findNavController().navigate(action)
-                d.dismiss()
-            }
+            .setPositiveButton("확인", null)
             .setNegativeButton("취소", null)
             .create()
 
-        dialog.show()
-
-        // 배경이 흰색이라 버튼 텍스트도 보이도록 색 지정
-        val accent = ContextCompat.getColor(requireContext(), R.color.secondary)
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(accent)
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(accent)
-    }
-
-    /* ======================================================================
-       메뉴 (우측 스팸 아이콘)
-       ====================================================================== */
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_conv, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean =
-        when (item.itemId) {
-            R.id.menu_spam -> {
-                findNavController().navigate(R.id.spamFragment)
-                true
+        dialog.setOnShowListener {
+            val ok   = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            val cancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+            ok.setOnClickListener {
+                val phone = et.text.toString().trim()
+                if (phone.isEmpty()) et.error = "번호를 입력하세요"
+                else {
+                    findNavController().navigate(
+                        ConvFragmentDirections.actionConvFragmentToThreadFragment(phone)
+                    )
+                    dialog.dismiss()
+                }
             }
-            else -> super.onOptionsItemSelected(item)
+            cancel.setOnClickListener { dialog.dismiss() }
         }
+        dialog.show()
+    }
 
-    /* ======================================================================
-       ItemTouchHelper (스와이프 삭제)
-       ====================================================================== */
+    /* ───────── Swipe to delete ───────── */
     private fun attachSwipeToDelete() {
         val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_delete_24)!!
         val bg   = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
 
-        val cb = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder,
-                                tgt: RecyclerView.ViewHolder) = false
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, tgt: RecyclerView.ViewHolder) = false
 
-            override fun onChildDraw(
-                c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
-                dx: Float, dy: Float, state: Int, active: Boolean
-            ) {
+            override fun onChildDraw(c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
+                                     dx: Float, dy: Float, state: Int, active: Boolean) {
                 val item   = vh.itemView
                 val margin = (item.height - icon.intrinsicHeight) / 2
-                val left   = item.left
-                val right  = (left + dx).toInt()
-
-                c.clipRect(left, item.top, right, item.bottom)
+                c.clipRect(item.left, item.top, item.left + dx.toInt(), item.bottom)
                 c.drawColor(bg)
                 icon.setBounds(
-                    left + margin, item.top + margin,
-                    left + margin + icon.intrinsicWidth,
+                    item.left + margin, item.top + margin,
+                    item.left + margin + icon.intrinsicWidth,
                     item.top + margin + icon.intrinsicHeight
                 )
                 icon.draw(c)
@@ -172,25 +142,27 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             }
 
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
-                val pos  = vh.bindingAdapterPosition
-                val item = adapter.currentList[pos]
-                AlertDialog.Builder(requireContext())
-                    .setMessage("정말 삭제하시겠습니까?")
-                    .setPositiveButton("삭제") { _, _ ->
-                        vm.deleteConversation(item.address)
-                    }
-                    .setNegativeButton("취소") { _, _ ->
-                        adapter.notifyItemChanged(pos)
-                    }
-                    .setCancelable(false)
-                    .show()
+                val convo = adapter.currentList[vh.bindingAdapterPosition]
+                vm.deleteConversation(convo.address)
+                Snackbar.make(b.root, "대화방 삭제됨", Snackbar.LENGTH_LONG)
+                    .setAction("Undo") {
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            vm.addNormal(
+                                SmsEntity(address = convo.address, body = "", type = 1)
+                            )
+                        }
+                    }.show()
             }
-        }
-        ItemTouchHelper(cb).attachToRecyclerView(b.rvConv)
+        }).attachToRecyclerView(b.rvConv)
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
-    }
+    /* ─ 메뉴(스팸함) ─ */
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) =
+        inflater.inflate(R.menu.menu_conv, menu)
+    override fun onOptionsItemSelected(item: MenuItem) =
+        if (item.itemId == R.id.menu_spam) {
+            findNavController().navigate(R.id.spamFragment); true
+        } else super.onOptionsItemSelected(item)
+
+    override fun onDestroyView() { _binding = null; super.onDestroyView() }
 }

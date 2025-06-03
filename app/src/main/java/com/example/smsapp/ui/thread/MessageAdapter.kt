@@ -1,9 +1,6 @@
 package com.example.smsapp.ui.thread
 
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +10,9 @@ import com.example.smsapp.databinding.ItemMessageBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MessageAdapter : RecyclerView.Adapter<MessageAdapter.VH>() {
+class MessageAdapter(
+    private val onLongPress: (SmsEntity, View) -> Unit        // ← 콜백
+) : RecyclerView.Adapter<MessageAdapter.VH>() {
 
     private val items = mutableListOf<SmsEntity>()
     private val fmt   = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault())
@@ -22,34 +21,41 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.VH>() {
         items.clear(); items.addAll(list); notifyDataSetChanged()
     }
 
-    inner class VH(private val b: ItemMessageBinding) :
+    inner class VH(val b: ItemMessageBinding) :
         RecyclerView.ViewHolder(b.root) {
 
         fun bind(m: SmsEntity) {
+            val ctx = b.root.context
             val parent = b.root as LinearLayout
-            val ctx    = b.root.context
 
-            if (m.type == 1) {          /* 수신 */
+            if (m.type == 1) {                       // 수신
                 b.ivAvatar.visibility = View.VISIBLE
-                b.tvAddress.visibility = View.VISIBLE
-                b.tvAddress.text = m.address
-                parent.gravity   = Gravity.START
+                b.tvAddress.visibility = View.GONE
+                parent.gravity = Gravity.START
                 b.layoutBubble.background =
                     ContextCompat.getDrawable(ctx, R.drawable.bg_message_bubble)
-            } else {                    /* 발신(나) */
+            } else {                                // 발신
                 b.ivAvatar.visibility = View.INVISIBLE
                 b.tvAddress.visibility = View.GONE
-                parent.gravity   = Gravity.END
+                parent.gravity = Gravity.END
                 b.layoutBubble.background =
                     ContextCompat.getDrawable(ctx, R.drawable.bg_message_bubble_outgoing)
             }
             b.tvBody.text = m.body
             b.tvTime.text = fmt.format(Date(m.timestamp))
+
+            /* ─── 롱클릭 콜백 ─── */
+            b.layoutBubble.setOnLongClickListener {
+                onLongPress(m, it)
+                true
+            }
         }
     }
 
     override fun onCreateViewHolder(p: ViewGroup, v: Int) =
         VH(ItemMessageBinding.inflate(LayoutInflater.from(p.context), p, false))
+
     override fun onBindViewHolder(h: VH, i: Int) = h.bind(items[i])
+
     override fun getItemCount() = items.size
 }

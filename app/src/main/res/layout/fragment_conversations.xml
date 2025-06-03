@@ -6,23 +6,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- ─ Toolbar ─ -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:title="대화"
-        app:titleTextColor="@android:color/white"/>
+        app:titleTextColor="@android:color/black"/>
 
+    <!-- ─ Empty View ─ -->
     <LinearLayout
         android:id="@+id/emptyContainer"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:gravity="center"
+        android:orientation="vertical"
         android:padding="32dp"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:visibility="gone">
 
         <ImageView
             android:layout_width="64dp"
@@ -31,24 +33,28 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="현재 메시지가 없습니다"
-            android:textSize="16sp"
-            android:layout_marginTop="8dp"/>
+            android:textSize="16sp"/>
     </LinearLayout>
 
+    <!-- ─ RecyclerView ─ -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvConv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"/>
 
+    <!-- ─ FAB ─ -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabCompose"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_baseline_edit_24"
         android:contentDescription="새 대화"
+        android:src="@drawable/ic_baseline_edit_24"
+        android:tint="@android:color/white"
+        app:backgroundTint="@color/secondary"
         app:layout_anchor="@id/rvConv"
         app:layout_anchorGravity="bottom|end"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

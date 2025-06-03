@@ -1,3 +1,4 @@
+// SmsDatabase.kt
 package com.example.smsapp.data
 
 import android.content.Context
@@ -7,7 +8,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [SmsEntity::class, SpamEntity::class],
-    version  = 2,
+    /* ▼ (Fix) 기존 2 → 3으로 복구 */
+    version = 3,
     exportSchema = false
 )
 abstract class SmsDatabase : RoomDatabase() {
@@ -23,7 +25,8 @@ abstract class SmsDatabase : RoomDatabase() {
                     ctx.applicationContext,
                     SmsDatabase::class.java, "sms.db"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    // v1→v2, v2→v3 모두 등록
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build().also { INSTANCE = it }
             }
 
@@ -39,6 +42,13 @@ abstract class SmsDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+            }
+        }
+
+        /* ▼ (Fix) 새로 추가 – 버전 2 → 3 로직이 실제로 없으면 빈 migration이라도 등록 */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                /* 현재 스키마 변화 없음 → NO-OP */
             }
         }
     }
