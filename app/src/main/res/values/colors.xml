@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ✨ 새 팔레트 ✨ -->
     <color name="primary">#FFFFFF</color>
@@ -12,4 +13,8 @@
     <color name="teal_200">#03DAC5</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+
+    <!-- ✅ 스위치용 ‘초록’(Green) -->
+    <color name="green_500">#4CAF50</color> <!-- thumb ON -->
+    <color name="green_200">#A5D6A7</color> <!-- track ON -->
 </resources>

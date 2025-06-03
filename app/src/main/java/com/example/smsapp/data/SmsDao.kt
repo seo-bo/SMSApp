@@ -14,7 +14,7 @@ data class ConversationSummary(
 @Dao
 interface SmsDao {
 
-    /** 최근 순 대화 목록 */
+    /* ───── ① 대화 목록 ───── */
     @Query(
         """
         SELECT address,
@@ -30,18 +30,21 @@ interface SmsDao {
     )
     fun getConversations(): LiveData<List<ConversationSummary>>
 
-    /** 한 주소의 스레드 – 최신이 위쪽 */
+    /* ───── ② 스레드 ───── */
     @Query("SELECT * FROM sms WHERE address = :addr ORDER BY timestamp DESC")
     fun getThread(addr: String): LiveData<List<SmsEntity>>
 
+    /* ───── ③ 삽입/삭제 ───── */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(e: SmsEntity)
 
-    /** 메시지 한 건 삭제 */
     @Query("DELETE FROM sms WHERE id = :msgId")
     suspend fun deleteMessage(msgId: Long)
 
-    /** 주소 전체 삭제 */
     @Query("DELETE FROM sms WHERE address = :addr")
     suspend fun deleteConversation(addr: String)
+
+    /* ───── ④ 전체 건수 (Settings 화면용) ───── */
+    @Query("SELECT COUNT(*) FROM sms")
+    fun totalCount(): LiveData<Int>
 }

@@ -7,6 +7,7 @@ import android.provider.Telephony
 import com.example.smsapp.data.SmsDatabase
 import com.example.smsapp.data.SmsEntity
 import com.example.smsapp.data.SpamEntity
+import com.example.smsapp.util.AppPrefs
 import com.example.smsapp.util.SpamClassifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,7 @@ class SMSReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
 
-        // ① 여러 segment가 있을 수 있는 SMS를 통합
+        /* ───────── ① 여러 segment 통합 ───────── */
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
         if (messages.isEmpty()) return
 
@@ -29,23 +30,17 @@ class SMSReceiver : BroadcastReceiver() {
         val spamDao = db.spamDao()
 
         CoroutineScope(Dispatchers.IO).launch {
-            if (SpamClassifier.isSpam(body)) {
-                // Named arguments 로 id→address→body→timestamp 순서 오류 방지
+            /* ───────── ② 설정: 로컬 필터 ON/OFF ───────── */
+            val localFilter = AppPrefs.isLocalFilterEnabled(ctx)
+
+            if (localFilter && SpamClassifier.isSpam(body)) {
                 spamDao.insert(
-                    SpamEntity(
-                        address   = address,
-                        body      = body,
-                        timestamp = timestamp
-                    )
+                    SpamEntity(address = address, body = body, timestamp = timestamp)
                 )
             } else {
                 smsDao.insert(
-                    SmsEntity(
-                        address   = address,
-                        body      = body,
-                        timestamp = timestamp,
-                        type      = 1
-                    )
+                    SmsEntity(address = address, body = body,
+                        timestamp = timestamp, type = 1)
                 )
             }
         }

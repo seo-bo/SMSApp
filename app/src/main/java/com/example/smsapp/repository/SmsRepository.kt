@@ -10,7 +10,7 @@ class SmsRepository(
     val conversations                  = smsDao.getConversations()
     fun messages(addr: String)         = smsDao.getThread(addr)
     suspend fun addNormal(e: SmsEntity)          = smsDao.insert(e)
-    suspend fun deleteMessage(id: Long)          = smsDao.deleteMessage(id)   // ← 추가
+    suspend fun deleteMessage(id: Long)          = smsDao.deleteMessage(id)
     suspend fun deleteConversation(addr: String) = smsDao.deleteConversation(addr)
 
     /* ─────────── 스팸 ─────────── */
@@ -18,4 +18,8 @@ class SmsRepository(
     fun spamThread(addr: String)       = spamDao.getThread(addr)
     suspend fun addSpam(e: SpamEntity)             = spamDao.insert(e)
     suspend fun deleteSpamConversation(addr: String) = spamDao.deleteConversation(addr)
+
+    /* ─────────── Settings 용 통계 ─────────── */
+    val totalNormalCount = smsDao.totalCount()
+    val totalSpamCount   = spamDao.spamCount()
 }

@@ -34,7 +34,10 @@ interface SpamDao {
     @Query("SELECT * FROM spam WHERE address = :addr ORDER BY timestamp DESC")
     fun getThread(addr: String): LiveData<List<SpamEntity>>
 
-    /** 해당 주소의 스팸 대화(방) 전체 삭제 */
     @Query("DELETE FROM spam WHERE address = :addr")
     suspend fun deleteConversation(addr: String)
+
+    /* ───── Settings 화면용 스팸 건수 ───── */
+    @Query("SELECT COUNT(*) FROM spam")
+    fun spamCount(): LiveData<Int>
 }
