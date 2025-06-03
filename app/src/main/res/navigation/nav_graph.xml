@@ -1,26 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/convFragment">
 
+    <!-- 대화 목록 -->
     <fragment
         android:id="@+id/convFragment"
         android:name="com.example.smsapp.ui.conversation.ConvFragment">
         <action
             android:id="@+id/action_convFragment_to_threadFragment"
-            app:destination="@id/threadFragment"/>
+            app:destination="@id/threadFragment" />
+        <!-- 추가: 설정 화면 이동 -->
+        <action
+            android:id="@+id/action_convFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
+    <!-- 스팸함 -->
+    <fragment
+        android:id="@+id/spamFragment"
+        android:name="com.example.smsapp.ui.spam.SpamFragment">
+        <action
+            android:id="@+id/action_spamFragment_to_threadFragment"
+            app:destination="@id/threadFragment" />
+    </fragment>
+
+    <!-- 스레드 -->
     <fragment
         android:id="@+id/threadFragment"
         android:name="com.example.smsapp.ui.thread.ThreadFragment">
         <argument
             android:name="address"
             app:argType="string" />
+        <argument
+            android:name="isSpam"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
+
+    <!-- 설정 -->
     <fragment
-        android:id="@+id/spamFragment"
-        android:name="com.example.smsapp.ui.spam.SpamFragment"
-        android:label="스팸 메시지" />
+        android:id="@+id/settingsFragment"
+        android:name="com.example.smsapp.ui.settings.SettingsFragment"
+        tools:layout="@layout/fragment_settings" />
 </navigation>

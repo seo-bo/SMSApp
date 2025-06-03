@@ -1,45 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/threadRoot"
-    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMsg"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"/>
+    <!-- ──────────────── 툴바 ──────────────── -->
+<com.google.android.material.appbar.MaterialToolbar
+android:id="@+id/toolbar"
+style="@style/Widget.MaterialComponents.Toolbar.Primary"
+android:layout_width="match_parent"
+android:layout_height="?attr/actionBarSize"
+android:background="?attr/colorPrimary"
+app:titleTextColor="@color/on_primary"/>
 
-    <LinearLayout
-        android:id="@+id/inputContainer"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom"
-        android:background="?attr/colorSurface"
-        android:elevation="4dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+    <!-- ──────────────── 메시지 목록 ──────────────── -->
+<androidx.recyclerview.widget.RecyclerView
+android:id="@+id/rvMsg"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:layout_marginTop="?attr/actionBarSize"
+android:clipToPadding="false"/>
 
-        <EditText
-            android:id="@+id/etMessage"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:hint="메시지 입력"
-            android:background="@null"
-            android:imeOptions="actionSend"
-            android:inputType="textMultiLine"/>
+    <!-- ──────────────── 입력창 ──────────────── -->
+<LinearLayout
+android:id="@+id/inputContainer"
+android:orientation="horizontal"
+android:layout_width="match_parent"
+android:layout_height="56dp"
+android:layout_gravity="bottom"
+android:background="?attr/colorSurface"
+android:elevation="4dp"
+android:paddingStart="8dp"
+android:paddingEnd="8dp">
 
-        <ImageButton
-            android:id="@+id/btnSend"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_send"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="보내기"/>
-    </LinearLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+<EditText
+    android:id="@+id/etMessage"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:hint="메시지 입력"
+    android:background="@null"
+    android:imeOptions="actionSend"
+    android:inputType="textMultiLine"/>
+
+<ImageButton
+    android:id="@+id/btnSend"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_gravity="center_vertical"
+    android:src="@drawable/ic_send"
+    app:tint="@color/secondary"
+android:background="?attr/selectableItemBackgroundBorderless"
+android:contentDescription="보내기"/>
+</LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>

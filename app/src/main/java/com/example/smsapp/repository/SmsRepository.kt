@@ -2,10 +2,19 @@ package com.example.smsapp.repository
 
 import com.example.smsapp.data.*
 
-class SmsRepository(private val smsDao:  SmsDao, private val spamDao: SpamDao) {
-    val conversations = smsDao.getConversations()
-    fun messages(addr: String) = smsDao.getThread(addr)
-    suspend fun addNormal(e: SmsEntity) = smsDao.insert(e)
-    val spamList = spamDao.getAll()
-    suspend fun addSpam(e: SpamEntity) = spamDao.insert(e)
+class SmsRepository(
+    private val smsDao:  SmsDao,
+    private val spamDao: SpamDao
+) {
+    // 일반 대화
+    val conversations              = smsDao.getConversations()
+    fun messages(addr: String)     = smsDao.getThread(addr)
+    suspend fun addNormal(e: SmsEntity)     = smsDao.insert(e)
+    suspend fun deleteConversation(addr: String) = smsDao.deleteConversation(addr)
+
+    // 스팸 대화(방)
+    val spamRooms                  = spamDao.getSpamConversations()
+    fun spamThread(addr: String)   = spamDao.getThread(addr)
+    suspend fun addSpam(e: SpamEntity)       = spamDao.insert(e)
+    suspend fun deleteSpamConversation(addr: String) = spamDao.deleteConversation(addr)
 }

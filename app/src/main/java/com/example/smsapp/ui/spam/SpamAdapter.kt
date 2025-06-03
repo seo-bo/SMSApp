@@ -2,30 +2,42 @@ package com.example.smsapp.ui.spam
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.smsapp.data.SpamEntity
-import com.example.smsapp.databinding.ItemSpamBinding
+import com.example.smsapp.R
+import com.example.smsapp.data.SpamSummary
+import com.example.smsapp.databinding.ItemConversationBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class SpamAdapter : RecyclerView.Adapter<SpamAdapter.VH>() {
-    private val items = mutableListOf<SpamEntity>()
+class SpamAdapter(
+    private val onClick: (SpamSummary) -> Unit = {}
+) : ListAdapter<SpamSummary, SpamAdapter.VH>(diff) {
+
     private val fmt = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault())
 
-    fun submit(list: List<SpamEntity>) {
-        items.clear(); items.addAll(list); notifyDataSetChanged()
-    }
-
-    inner class VH(val b: ItemSpamBinding) : RecyclerView.ViewHolder(b.root) {
-        fun bind(e: SpamEntity) = with(b) {
-            tvAddr.text = e.address
-            tvBody.text = e.body
-            tvTime.text = fmt.format(Date(e.timestamp))
+    inner class VH(val b: ItemConversationBinding) :
+        RecyclerView.ViewHolder(b.root) {
+        fun bind(c: SpamSummary) = with(b) {
+            tvAddress.text = c.address
+            tvPreview.text = c.lastBody
+            tvTime.text    = fmt.format(Date(c.lastTime))
+            tvCount.text   = c.total.toString()
+            ivAvatar.setImageResource(R.drawable.ic_default_profile)
+            root.setOnClickListener { onClick(c) }
         }
     }
 
     override fun onCreateViewHolder(p: ViewGroup, v: Int) =
-        VH(ItemSpamBinding.inflate(LayoutInflater.from(p.context), p, false))
-    override fun onBindViewHolder(h: VH, i: Int) = h.bind(items[i])
-    override fun getItemCount() = items.size
+        VH(ItemConversationBinding.inflate(LayoutInflater.from(p.context), p, false))
+    override fun onBindViewHolder(h: VH, i: Int) = h.bind(getItem(i))
+
+    companion object {
+        private val diff = object : DiffUtil.ItemCallback<SpamSummary>() {
+            override fun areItemsTheSame(a: SpamSummary, b: SpamSummary) =
+                a.address == b.address
+            override fun areContentsTheSame(a: SpamSummary, b: SpamSummary) = a == b
+        }
+    }
 }

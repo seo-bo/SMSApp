@@ -3,7 +3,7 @@ package com.example.smsapp.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.telephony.SmsMessage
+import android.provider.Telephony
 import com.example.smsapp.data.SmsDatabase
 import com.example.smsapp.data.SmsEntity
 import com.example.smsapp.data.SpamEntity
@@ -14,45 +14,39 @@ import kotlinx.coroutines.launch
 
 class SMSReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
-        if (intent.action != "android.provider.Telephony.SMS_RECEIVED") return
+        if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
 
-        val pdus   = intent.extras?.get("pdus") as? Array<*> ?: return
-        val format = intent.extras?.getString("format")
+        // ① 여러 segment가 있을 수 있는 SMS를 통합
+        val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
+        if (messages.isEmpty()) return
+
+        val address   = messages[0].originatingAddress ?: return
+        val body      = buildString { messages.forEach { append(it.messageBody) } }
+        val timestamp = System.currentTimeMillis()
 
         val db      = SmsDatabase.get(ctx)
         val smsDao  = db.smsDao()
         val spamDao = db.spamDao()
 
-        pdus.forEach { raw ->
-            val msg = if (format != null) {
-                SmsMessage.createFromPdu(raw as ByteArray, format)
+        CoroutineScope(Dispatchers.IO).launch {
+            if (SpamClassifier.isSpam(body)) {
+                // Named arguments 로 id→address→body→timestamp 순서 오류 방지
+                spamDao.insert(
+                    SpamEntity(
+                        address   = address,
+                        body      = body,
+                        timestamp = timestamp
+                    )
+                )
             } else {
-                SmsMessage.createFromPdu(raw as ByteArray) ?: return@forEach
-            }
-
-            val addr = msg.originatingAddress ?: "Unknown"
-            val body = msg.messageBody
-            val ts   = System.currentTimeMillis()
-
-            CoroutineScope(Dispatchers.IO).launch {
-                if (SpamClassifier.isSpam(body)) {
-                    spamDao.insert(
-                        SpamEntity(
-                            address   = addr,
-                            body      = body,
-                            timestamp = ts
-                        )
+                smsDao.insert(
+                    SmsEntity(
+                        address   = address,
+                        body      = body,
+                        timestamp = timestamp,
+                        type      = 1
                     )
-                } else {
-                    smsDao.insert(
-                        SmsEntity(
-                            address   = addr,
-                            body      = body,
-                            timestamp = ts,
-                            type      = 1
-                        )
-                    )
-                }
+                )
             }
         }
     }

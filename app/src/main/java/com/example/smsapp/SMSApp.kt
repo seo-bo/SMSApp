@@ -1,25 +1,15 @@
 package com.example.smsapp
 
 import android.app.Application
-import android.content.Context
-import com.example.smsapp.util.SmsImporter
 import com.example.smsapp.util.SpamClassifier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
+/**
+ * Application 클래스에서는 오직 스팸 모델 초기화만 수행합니다.
+ * SMSImporter.importAll() 은 MainActivity 에서 퍼미션 허용 후에만 호출됩니다.
+ */
 class SMSApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        SpamClassifier.init(this)
-
-        // 2) 기존 메시지 import (한 번만)
-        val prefs = getSharedPreferences("smsapp_prefs", Context.MODE_PRIVATE)
-        if (!prefs.getBoolean("import_done", false)) {
-            CoroutineScope(Dispatchers.IO).launch {
-                SmsImporter.importAll(this@SMSApp)
-                prefs.edit().putBoolean("import_done", true).apply()
-            }
-        }
+        SpamClassifier.init(applicationContext)
     }
 }

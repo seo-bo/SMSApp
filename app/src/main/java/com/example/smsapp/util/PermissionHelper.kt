@@ -1,17 +1,31 @@
 package com.example.smsapp.util
 
-import android.Manifest
-import android.content.Context
+import android.app.Activity
 import android.content.pm.PackageManager
+import androidx.activity.result.ActivityResultCaller
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 
-object PermissionHelper {
-    val REQUIRED = arrayOf(
-        Manifest.permission.SEND_SMS,
-        Manifest.permission.RECEIVE_SMS,
-        Manifest.permission.READ_SMS,
-        Manifest.permission.POST_NOTIFICATIONS
-    )
-    fun hasAll(ctx: Context) =
-        REQUIRED.all { ContextCompat.checkSelfPermission(ctx, it) == PackageManager.PERMISSION_GRANTED }
+class PermissionHelper(
+    caller: ActivityResultCaller,
+    private val onGranted: () -> Unit
+) {
+    private val launcher = caller.registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        if (results.values.all { it }) onGranted()
+    }
+
+    fun ensureSmsPermissions(activity: Activity) {
+        val perms = arrayOf(
+            android.Manifest.permission.RECEIVE_SMS,
+            android.Manifest.permission.READ_SMS,
+            android.Manifest.permission.SEND_SMS
+        )
+        val ok = perms.all {
+            ContextCompat.checkSelfPermission(activity, it) ==
+                    PackageManager.PERMISSION_GRANTED
+        }
+        if (ok) onGranted() else launcher.launch(perms)
+    }
 }
