@@ -70,8 +70,8 @@
                         android:id="@+id/swLocal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:thumbTint="@color/green_500"
-                        app:trackTint="@color/green_200"/>
+                        app:thumbTint="@color/switch_thumb_tint"
+                        app:trackTint="@color/switch_track_tint"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -115,8 +115,8 @@
                         android:id="@+id/swAdvanced"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:thumbTint="@color/green_500"
-                        app:trackTint="@color/green_200"/>
+                        app:thumbTint="@color/switch_thumb_tint"
+                        app:trackTint="@color/switch_track_tint"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

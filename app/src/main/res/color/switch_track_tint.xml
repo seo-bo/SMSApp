@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- ON  → 연초록 -->
+    <item android:color="@color/green_200" android:state_checked="true"/>
+    <!-- OFF → 아주 연한 회색 -->
+    <item android:color="@color/gray_300"/>
+</selector>

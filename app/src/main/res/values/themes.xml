@@ -1,25 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- 앱 메인 테마 -->
+    <!-- ─────────  App 메인 테마  ───────── -->
     <style name="Theme.SMSApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- 팔레트 -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_variant</item>
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorSurface">@color/surface</item>
+
+        <!-- 상태바 아이콘 검은색 -->
         <item name="android:statusBarColor">@color/primary_variant</item>
         <item name="android:windowLightStatusBar">true</item>
+
+        <!-- 모든 AlertDialog 에 공통 테마 주입 -->
+        <item name="alertDialogTheme">@style/DialogTheme.SMSApp</item>
     </style>
 
-    <!-- Material 3 AlertDialog : 둥근모서리 + 버튼색 -->
+    <!-- ─────────  Material3 AlertDialog  ───────── -->
     <style name="DialogTheme.SMSApp" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="shapeAppearanceCornerLarge">@dimen/corner_16</item>
-        <item name="buttonBarPositiveButtonStyle">@style/DialogButton.Positive</item>
-        <item name="buttonBarNegativeButtonStyle">@style/DialogButton.Negative</item>
+
+        <!-- 양쪽 버튼 모두 ‘검정 글씨’ -->
+        <item name="buttonBarPositiveButtonStyle">@style/DialogButton.BlackText</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogButton.BlackText</item>
     </style>
 
-    <!-- TextInput 기본 -->
+    <style name="DialogButton.BlackText" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <!-- TextInput 기본 둥근 모서리 -->
     <style name="Widget.SMSApp.TextInput"
         parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="boxCornerRadiusTopStart">12dp</item>
@@ -28,14 +41,11 @@
         <item name="boxCornerRadiusBottomEnd">12dp</item>
     </style>
 
-    <!-- ✅ 다이얼로그 버튼 – 검은색 -->
-    <style name="DialogButton.Positive" parent="Widget.Material3.Button.TextButton">
-        <item name="android:textColor">@color/black</item>
+    <!-- 카드·버블용 12dp 라운드 -->
+    <style name="Shape.Corner12">
+        <item name="cornerSize">12dp</item>
     </style>
-    <style name="DialogButton.Negative" parent="Widget.Material3.Button.TextButton">
-        <item name="android:textColor">@color/black</item>
-    </style>
-    <style name="Shape.Corner12" parent="">
+    <style name="Shape">
         <item name="cornerSize">12dp</item>
     </style>
 </resources>

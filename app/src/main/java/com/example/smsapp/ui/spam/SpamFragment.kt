@@ -1,6 +1,5 @@
 package com.example.smsapp.ui.spam
 
-import android.app.AlertDialog
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
@@ -20,15 +19,16 @@ import com.example.smsapp.R
 import com.example.smsapp.databinding.FragmentSpamBinding
 import com.example.smsapp.ui.viewmodel.SpamViewModel
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class SpamFragment : Fragment(R.layout.fragment_spam) {
 
     private var _binding: FragmentSpamBinding? = null
     private val b get() = _binding!!
     private lateinit var vm: SpamViewModel
-    private val adapter = SpamAdapter { summary ->
+    private val adapter = SpamAdapter { s ->
         val action = SpamFragmentDirections
-            .actionSpamFragmentToThreadFragment(summary.address, true)
+            .actionSpamFragmentToThreadFragment(s.address, true)
         findNavController().navigate(action)
     }
 
@@ -36,27 +36,26 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSpamBinding.bind(view)
 
-        /* ─────────────── 1. Toolbar ─────────────── */
-        val toolbar = b.toolbar as MaterialToolbar
-        (requireActivity() as AppCompatActivity).setSupportActionBar(toolbar)
-        toolbar.title = "스팸함"
-        toolbar.setTitleTextColor(Color.BLACK)
+        /* ─ Toolbar ─ */
+        val tb = b.toolbar as MaterialToolbar
+        (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
+        tb.title = "스팸함"
+        tb.setTitleTextColor(Color.BLACK)
         (requireActivity() as AppCompatActivity)
             .supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        /* ─────────────── 2. Insets ─────────────── */
+        /* ─ Insets ─ */
         val root = view.findViewById<CoordinatorLayout>(R.id.spamRoot)
-        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
-            val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, ins ->
+            val sys = ins.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(sys.left, sys.top, sys.right, sys.bottom)
             WindowInsetsCompat.CONSUMED
         }
 
-        /* ─────────────── 3. RecyclerView ─────────────── */
+        /* ─ RecyclerView ─ */
         vm = ViewModelProvider(this)[SpamViewModel::class.java]
         b.rvSpam.layoutManager = LinearLayoutManager(requireContext())
-        b.rvSpam.adapter       = adapter
-
+        b.rvSpam.adapter = adapter
         vm.rooms.observe(viewLifecycleOwner) {
             adapter.submitList(it)
             b.rvSpam.scrollToPosition(0)
@@ -65,16 +64,13 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
         attachSwipeToDelete()
     }
 
-    /* ---------- 스와이프 삭제 ---------- */
+    /* ───────── Swipe 삭제 ───────── */
     private fun attachSwipeToDelete() {
         val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_delete_24)!!
         val bg   = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            override fun onMove(
-                recyclerView: RecyclerView, vh: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ) = false
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, tgt: RecyclerView.ViewHolder) = false
 
             override fun onChildDraw(
                 c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
@@ -98,13 +94,14 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
                 val pos     = vh.bindingAdapterPosition
                 val summary = adapter.currentList[pos]
-                AlertDialog.Builder(requireContext())
+
+                MaterialAlertDialogBuilder(requireContext())
                     .setMessage("이 대화를 정말 삭제하시겠습니까?")
                     .setPositiveButton("삭제") { _, _ ->
                         vm.deleteConversation(summary.address)
                     }
                     .setNegativeButton("취소") { _, _ ->
-                        adapter.notifyItemChanged(pos)
+                        adapter.notifyItemChanged(pos)     // 복원
                     }
                     .setCancelable(false)
                     .show()
@@ -112,8 +109,5 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
         }).attachToRecyclerView(b.rvSpam)
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
-    }
+    override fun onDestroyView() { _binding = null; super.onDestroyView() }
 }

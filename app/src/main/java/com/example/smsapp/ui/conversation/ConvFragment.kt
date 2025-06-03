@@ -76,7 +76,6 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             override fun onItemRangeInserted(p: Int, c: Int) = onChanged()
         })
 
-        /* ─ LiveData ─ */
         vm.rooms.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             b.emptyContainer.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
@@ -89,24 +88,19 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         attachSwipeToDelete()
     }
 
-    /* ───────── 대화 시작 다이얼로그 ───────── */
+    /* ───────── 새 대화 다이얼로그 ───────── */
     private fun showComposeDialog() {
         val dialogV = layoutInflater.inflate(R.layout.dialog_start_conversation, null, false)
         val et = dialogV.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etPhone)
 
-        val dlg = MaterialAlertDialogBuilder(requireContext(), R.style.DialogTheme_SMSApp)
+        val dlg = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogV)
             .setPositiveButton("확인", null)
             .setNegativeButton("취소", null)
             .create()
 
         dlg.setOnShowListener {
-            val ok     = dlg.getButton(AlertDialog.BUTTON_POSITIVE)
-            val cancel = dlg.getButton(AlertDialog.BUTTON_NEGATIVE)
-            val black  = ContextCompat.getColor(requireContext(), R.color.black)
-            ok.setTextColor(black); cancel.setTextColor(black)
-
-            ok.setOnClickListener {
+            dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val phone = et.text.toString().trim()
                 if (phone.isEmpty()) {
                     et.error = "번호를 입력하세요"
@@ -118,17 +112,12 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
                     dlg.dismiss()
                 }
             }
-            cancel.setOnClickListener {
-                hideKeyboardFrom(et)          // ✅ 취소 시에도 확실히 내려감
-                dlg.dismiss()
-            }
         }
-
-        dlg.setOnDismissListener { hideKeyboardFrom(et) }    // 외부 탭 닫힘 시
+        dlg.setOnDismissListener { hideKeyboardFrom(et) }
         dlg.show()
     }
 
-    /* ───────── 키보드 강제 숨김 ───────── */
+    /* ───────── 키보드 숨김 ───────── */
     private fun hideKeyboardFrom(view: View?) {
         view ?: return
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -165,14 +154,25 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             }
 
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
-                val convo = adapter.currentList[vh.bindingAdapterPosition]
-                vm.deleteConversation(convo.address)
-                Snackbar.make(b.root, "대화방 삭제됨", Snackbar.LENGTH_LONG)
-                    .setAction("Undo") {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            vm.addNormal(SmsEntity(address = convo.address, body = "", type = 1))
-                        }
-                    }.show()
+                val pos   = vh.bindingAdapterPosition
+                val convo = adapter.currentList[pos]
+
+                MaterialAlertDialogBuilder(requireContext())
+                    .setMessage("이 대화를 정말 삭제하시겠습니까?")
+                    .setPositiveButton("삭제") { _, _ ->
+                        vm.deleteConversation(convo.address)
+                        Snackbar.make(b.root, "대화방 삭제됨", Snackbar.LENGTH_LONG)
+                            .setAction("Undo") {
+                                viewLifecycleOwner.lifecycleScope.launch {
+                                    vm.addNormal(SmsEntity(address = convo.address, body = "", type = 1))
+                                }
+                            }.show()
+                    }
+                    .setNegativeButton("취소") { _, _ ->
+                        adapter.notifyItemChanged(pos)          // 복원
+                    }
+                    .setCancelable(false)
+                    .show()
             }
         }).attachToRecyclerView(b.rvConv)
     }
