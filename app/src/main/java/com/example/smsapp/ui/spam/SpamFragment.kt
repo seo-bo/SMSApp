@@ -1,6 +1,7 @@
 package com.example.smsapp.ui.spam
 
 import android.graphics.Canvas
+import androidx.appcompat.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -95,16 +96,31 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
                 val pos     = vh.bindingAdapterPosition
                 val summary = adapter.currentList[pos]
 
-                MaterialAlertDialogBuilder(requireContext())
+                val dlg = MaterialAlertDialogBuilder(requireContext())
                     .setMessage("이 대화를 정말 삭제하시겠습니까?")
-                    .setPositiveButton("삭제") { _, _ ->
-                        vm.deleteConversation(summary.address)
-                    }
-                    .setNegativeButton("취소") { _, _ ->
-                        adapter.notifyItemChanged(pos)     // 복원
-                    }
+                    .setPositiveButton("삭제", null)
+                    .setNegativeButton("취소", null)
                     .setCancelable(false)
-                    .show()
+                    .create()
+
+                dlg.setOnShowListener {
+                    val black = ContextCompat.getColor(requireContext(), R.color.black)
+                    dlg.getButton(AlertDialog.BUTTON_POSITIVE).apply {
+                        setTextColor(black)
+                        setOnClickListener {
+                            vm.deleteConversation(summary.address)
+                            dlg.dismiss()
+                        }
+                    }
+                    dlg.getButton(AlertDialog.BUTTON_NEGATIVE).apply {
+                        setTextColor(black)
+                        setOnClickListener {
+                            adapter.notifyItemChanged(pos)  // 복원
+                            dlg.dismiss()
+                        }
+                    }
+                }
+                dlg.show()
             }
         }).attachToRecyclerView(b.rvSpam)
     }

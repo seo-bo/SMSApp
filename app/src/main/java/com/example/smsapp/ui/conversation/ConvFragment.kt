@@ -2,11 +2,15 @@ package com.example.smsapp.ui.conversation
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.graphics.Canvas
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.*
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog as AppAlert
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -100,28 +104,47 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             .create()
 
         dlg.setOnShowListener {
-            dlg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val phone = et.text.toString().trim()
-                if (phone.isEmpty()) {
-                    et.error = "번호를 입력하세요"
-                } else {
-                    findNavController().navigate(
-                        ConvFragmentDirections.actionConvFragmentToThreadFragment(phone)
-                    )
-                    hideKeyboardFrom(et)
-                    dlg.dismiss()
+            val black = ContextCompat.getColor(requireContext(), R.color.black)
+            dlg.getButton(AppAlert.BUTTON_POSITIVE).apply {
+                setTextColor(black)
+                setOnClickListener {
+                    val phone = et.text.toString().trim()
+                    if (phone.isEmpty()) {
+                        et.error = "번호를 입력하세요"
+                    } else {
+                        findNavController().navigate(
+                            ConvFragmentDirections.actionConvFragmentToThreadFragment(phone)
+                        )
+                        dlg.dismiss()
+                    }
                 }
             }
+            dlg.getButton(AppAlert.BUTTON_NEGATIVE).apply {
+                setTextColor(black)
+                setOnClickListener { dlg.cancel() }
+            }
         }
-        dlg.setOnDismissListener { hideKeyboardFrom(et) }
+
+        /* ─ 모든 종료 경로에서 키보드 강제 숨김 ─ */
+        val onCancel = DialogInterface.OnCancelListener { forceHideKeyboard() }
+        val onDismiss = DialogInterface.OnDismissListener { forceHideKeyboard() }
+
+        dlg.setOnCancelListener(onCancel)
+        dlg.setOnDismissListener(onDismiss)
+
         dlg.show()
     }
 
-    /* ───────── 키보드 숨김 ───────── */
-    private fun hideKeyboardFrom(view: View?) {
-        view ?: return
+    /* ───────── 키보드 완전 강제 숨김 ───────── */
+    private fun forceHideKeyboard() {
+        hideIme()
+        Handler(Looper.getMainLooper()).postDelayed({ hideIme() }, 50)
+    }
+    private fun hideIme() {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
+        requireActivity().currentFocus?.windowToken?.let { imm.hideSoftInputFromWindow(it, 0) }
+        imm.hideSoftInputFromWindow(requireActivity().window.decorView.windowToken, 0)
+        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
     }
 
     /* ───────── Swipe to delete ───────── */
@@ -130,9 +153,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         val bg   = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            override fun onMove(
-                rv: RecyclerView, vh: RecyclerView.ViewHolder, tgt: RecyclerView.ViewHolder
-            ) = false
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, tgt: RecyclerView.ViewHolder) = false
 
             override fun onChildDraw(
                 c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
@@ -157,22 +178,43 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
                 val pos   = vh.bindingAdapterPosition
                 val convo = adapter.currentList[pos]
 
-                MaterialAlertDialogBuilder(requireContext())
+                val dlg = MaterialAlertDialogBuilder(requireContext())
                     .setMessage("이 대화를 정말 삭제하시겠습니까?")
-                    .setPositiveButton("삭제") { _, _ ->
-                        vm.deleteConversation(convo.address)
-                        Snackbar.make(b.root, "대화방 삭제됨", Snackbar.LENGTH_LONG)
-                            .setAction("Undo") {
-                                viewLifecycleOwner.lifecycleScope.launch {
-                                    vm.addNormal(SmsEntity(address = convo.address, body = "", type = 1))
-                                }
-                            }.show()
-                    }
-                    .setNegativeButton("취소") { _, _ ->
-                        adapter.notifyItemChanged(pos)          // 복원
-                    }
+                    .setPositiveButton("삭제", null)
+                    .setNegativeButton("취소", null)
                     .setCancelable(false)
-                    .show()
+                    .create()
+
+                dlg.setOnShowListener {
+                    val black = ContextCompat.getColor(requireContext(), R.color.black)
+                    dlg.getButton(AppAlert.BUTTON_POSITIVE).apply {
+                        setTextColor(black)
+                        setOnClickListener {
+                            vm.deleteConversation(convo.address)
+                            Snackbar.make(b.root, "대화방 삭제됨", Snackbar.LENGTH_LONG)
+                                .setAction("Undo") {
+                                    viewLifecycleOwner.lifecycleScope.launch {
+                                        vm.addNormal(
+                                            SmsEntity(
+                                                address = convo.address,
+                                                body    = "",
+                                                type    = 1
+                                            )
+                                        )
+                                    }
+                                }.show()
+                            dlg.dismiss()
+                        }
+                    }
+                    dlg.getButton(AppAlert.BUTTON_NEGATIVE).apply {
+                        setTextColor(black)
+                        setOnClickListener {
+                            adapter.notifyItemChanged(pos)   // 복원
+                            dlg.dismiss()
+                        }
+                    }
+                }
+                dlg.show()
             }
         }).attachToRecyclerView(b.rvConv)
     }
