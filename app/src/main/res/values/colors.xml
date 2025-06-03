@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ✨ 새 팔레트 ✨ -->
+    <!-- ✨ 팔레트 -->
     <color name="primary">#FFFFFF</color>
     <color name="primary_variant">#F2F2F2</color>
     <color name="on_primary">#212121</color>
     <color name="secondary">#00BFA5</color>
     <color name="surface">#FAFAFA</color>
 
-    <!-- (기존 이름 충돌 방지용) -->
+    <!-- 기존 -->
     <color name="purple_500">#6F35FC</color>
     <color name="purple_700">#4E1DF5</color>
     <color name="teal_200">#03DAC5</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <!-- ✅ 스위치 ON 상태용 초록 -->
-    <color name="green_500">#4CAF50</color> <!-- thumb -->
-    <color name="green_200">#A5D6A7</color> <!-- track -->
+    <!-- 스위치 ON(초록) -->
+    <color name="green_500">#4CAF50</color>
+    <color name="green_200">#A5D6A7</color>
+
+    <!-- 🔹 X 버튼용 ‘부드러운 빨강’ -->
+    <color name="red_soft">#E53935</color>
 </resources>

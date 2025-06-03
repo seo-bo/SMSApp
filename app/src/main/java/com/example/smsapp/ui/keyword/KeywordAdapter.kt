@@ -9,14 +9,15 @@ import com.example.smsapp.data.KeywordEntity
 import com.example.smsapp.databinding.ItemKeywordBinding
 
 class KeywordAdapter(
-    private val onLongPress: (KeywordEntity) -> Unit
+    /** 삭제 콜백 */
+    private val onDelete: (KeywordEntity) -> Unit
 ) : ListAdapter<KeywordEntity, KeywordAdapter.VH>(diff) {
 
     inner class VH(val b: ItemKeywordBinding)
         : RecyclerView.ViewHolder(b.root) {
         fun bind(e: KeywordEntity) = with(b) {
             tvWord.text = e.word
-            root.setOnLongClickListener { onLongPress(e); true }
+            btnDelete.setOnClickListener { onDelete(e) }
         }
     }
 

@@ -29,7 +29,7 @@ class KeywordFragment : Fragment(R.layout.fragment_keyword) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentKeywordBinding.bind(view)
 
-        /* ─── Toolbar ─── */
+        /* ─ Toolbar ─ */
         val tb: MaterialToolbar = b.toolbar
         (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
         (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -38,8 +38,11 @@ class KeywordFragment : Fragment(R.layout.fragment_keyword) {
         tb.setTitleTextColor(Color.BLACK)
         tb.isTitleCentered = true
 
-        /* ─── ViewModel & RecyclerView ─── */
-        vm = ViewModelProvider(this, KeywordViewModel.Factory(requireActivity().application, args.isWhitelist))[KeywordViewModel::class.java]
+        /* ─ ViewModel + RecyclerView ─ */
+        vm = ViewModelProvider(
+            this,
+            KeywordViewModel.Factory(requireActivity().application, args.isWhitelist)
+        )[KeywordViewModel::class.java]
 
         adapter = KeywordAdapter { kw ->
             MaterialAlertDialogBuilder(requireContext())
@@ -52,7 +55,7 @@ class KeywordFragment : Fragment(R.layout.fragment_keyword) {
         b.rvKeyword.adapter = adapter
         vm.words.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
-        /* ─── 입력 + 추가 버튼 ─── */
+        /* ─ 입력 + 추가 ─ */
         b.btnAdd.setOnClickListener {
             val w = b.etKeyword.text.toString().trim()
             if (w.isEmpty()) {
@@ -62,7 +65,6 @@ class KeywordFragment : Fragment(R.layout.fragment_keyword) {
                 b.etKeyword.text?.clear()
             }
         }
-        /* 엔터 키로도 추가 */
         b.etKeyword.addTextChangedListener { txt ->
             b.btnAdd.isEnabled = !txt.isNullOrBlank()
         }
