@@ -37,16 +37,16 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentThreadBinding.bind(view)
 
-        /* ───────── Toolbar ───────── */
+        // 툴바
         val tb: MaterialToolbar = b.toolbar
         (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
-        tb.title = args.address                          // 전화번호만 표시
+        tb.title = args.address // 전화번호만 표시
         tb.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24)
         tb.navigationIcon?.setTint(android.graphics.Color.BLACK)
         tb.setNavigationOnClickListener { hideKeyboardAndBack() }
-        tb.isTitleCentered = false                       // 왼쪽 정렬
+        tb.isTitleCentered = false  // 왼쪽 정렬
 
-        /* ───────── ViewModel ───────── */
+        // ViewModel
         vm = ViewModelProvider(
             this,
             ThreadViewModel.Factory(
@@ -56,7 +56,7 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
             )
         )[ThreadViewModel::class.java]
 
-        /* ───────── RecyclerView ───────── */
+        // RecyclerView
         adapter = MessageAdapter(::onMessageLongPress)
         b.rvMsg.layoutManager = LinearLayoutManager(requireContext()).apply { reverseLayout = true }
         b.rvMsg.adapter = adapter
@@ -66,9 +66,9 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
         })
         vm.messages.observe(viewLifecycleOwner) { adapter.submit(it) }
 
-        /* ───────── 입력/전송 ───────── */
+        // 입력 / 전송
         if (args.isSpam) {
-            b.inputContainer.visibility = View.GONE        // 스팸 스레드는 읽기 전용
+            b.inputContainer.visibility = View.GONE // 읽기 전용
         } else {
             b.btnSend.setOnClickListener {
                 val txt = b.etMessage.text.toString().trim()
@@ -79,17 +79,15 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
             }
         }
 
-        /* ───────── 입력창 높이만큼 패딩 ───────── */
+        // 패딩
         b.inputContainer.doOnLayout { bar ->
             b.rvMsg.setPadding(0, 0, 0, bar.height)
         }
     }
 
-    /* ─────────────────────────────────────────────
-       메시지 길게 눌렀을 때 BottomSheet (Copy / Delete)
-       ───────────────────────────────────────────── */
+    // Copy / Delete
     private fun onMessageLongPress(msg: SmsEntity, anchor: View) {
-        if (args.isSpam) return       // 스팸 스레드는 조작 금지
+        if (args.isSpam) return
 
         val sheet = BottomSheetDialog(requireContext())
         val content = layoutInflater.inflate(R.layout.sheet_message_actions, null, false)
@@ -113,7 +111,7 @@ class ThreadFragment : Fragment(R.layout.fragment_thread) {
         sheet.show()
     }
 
-    /* ───────── 헬퍼: 키보드 숨기고 뒤로 ───────── */
+    // 뒤로가기
     private fun hideKeyboardAndBack() {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         val token = requireActivity().currentFocus?.windowToken ?: b.root.windowToken

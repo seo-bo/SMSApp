@@ -9,7 +9,6 @@ import com.example.smsapp.data.KeywordEntity
 import com.example.smsapp.databinding.ItemKeywordBinding
 
 class KeywordAdapter(
-    /** 삭제 콜백 */
     private val onDelete: (KeywordEntity) -> Unit
 ) : ListAdapter<KeywordEntity, KeywordAdapter.VH>(diff) {
 

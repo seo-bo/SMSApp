@@ -51,7 +51,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         _binding = FragmentConversationsBinding.bind(view)
         vm = ViewModelProvider(this)[ConvViewModel::class.java]
 
-        /* ─ Toolbar ─ */
+        // 툴바
         val tb: MaterialToolbar = b.toolbar
         (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
         tb.setNavigationIcon(R.drawable.ic_baseline_settings_24)
@@ -59,7 +59,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             findNavController().navigate(R.id.action_convFragment_to_settingsFragment)
         }
 
-        /* ─ Insets ─ */
+        // insets
         ViewCompat.setOnApplyWindowInsetsListener(
             b.convRoot as CoordinatorLayout
         ) { v, ins ->
@@ -68,7 +68,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             WindowInsetsCompat.CONSUMED
         }
 
-        /* ─ RecyclerView ─ */
+        // RecyclerView
         b.rvConv.layoutManager = LinearLayoutManager(requireContext())
         b.rvConv.adapter = adapter
         DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL).apply {
@@ -85,14 +85,14 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             b.emptyContainer.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        /* ─ FAB ─ */
+        // FAB
         b.fabCompose.setOnClickListener { showComposeDialog() }
 
-        /* ─ Swipe 삭제 ─ */
+        // Swipe
         attachSwipeToDelete()
     }
 
-    /* ───────── 새 대화 다이얼로그 ───────── */
+    // 새 대화
     private fun showComposeDialog() {
         val dialogV = layoutInflater.inflate(R.layout.dialog_start_conversation, null, false)
         val et = dialogV.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etPhone)
@@ -125,7 +125,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
             }
         }
 
-        /* ─ 모든 종료 경로에서 키보드 강제 숨김 ─ */
+        // 키보드 숨기기
         val onCancel = DialogInterface.OnCancelListener { forceHideKeyboard() }
         val onDismiss = DialogInterface.OnDismissListener { forceHideKeyboard() }
 
@@ -135,7 +135,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         dlg.show()
     }
 
-    /* ───────── 키보드 완전 강제 숨김 ───────── */
+    // 키보드 숨기기
     private fun forceHideKeyboard() {
         hideIme()
         Handler(Looper.getMainLooper()).postDelayed({ hideIme() }, 50)
@@ -147,7 +147,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
     }
 
-    /* ───────── Swipe to delete ───────── */
+    // Swipe 해서 지우기
     private fun attachSwipeToDelete() {
         val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_delete_24)!!
         val bg   = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
@@ -219,7 +219,7 @@ class ConvFragment : Fragment(R.layout.fragment_conversations) {
         }).attachToRecyclerView(b.rvConv)
     }
 
-    /* 메뉴 (스팸함) */
+    // 스팸함
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) =
         inflater.inflate(R.menu.menu_conv, menu)
 

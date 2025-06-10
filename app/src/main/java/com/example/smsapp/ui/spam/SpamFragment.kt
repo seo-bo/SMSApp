@@ -37,7 +37,7 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSpamBinding.bind(view)
 
-        /* ─ Toolbar ─ */
+        // 툴바
         val tb = b.toolbar as MaterialToolbar
         (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
         tb.title = "스팸함"
@@ -45,7 +45,7 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
         (requireActivity() as AppCompatActivity)
             .supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        /* ─ Insets ─ */
+        // insets
         val root = view.findViewById<CoordinatorLayout>(R.id.spamRoot)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, ins ->
             val sys = ins.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -53,7 +53,7 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
             WindowInsetsCompat.CONSUMED
         }
 
-        /* ─ RecyclerView ─ */
+        // RecyclerView
         vm = ViewModelProvider(this)[SpamViewModel::class.java]
         b.rvSpam.layoutManager = LinearLayoutManager(requireContext())
         b.rvSpam.adapter = adapter
@@ -65,7 +65,7 @@ class SpamFragment : Fragment(R.layout.fragment_spam) {
         attachSwipeToDelete()
     }
 
-    /* ───────── Swipe 삭제 ───────── */
+    // 스와이프 삭제
     private fun attachSwipeToDelete() {
         val icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_delete_24)!!
         val bg   = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)

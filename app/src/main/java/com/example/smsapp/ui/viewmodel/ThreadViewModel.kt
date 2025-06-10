@@ -20,7 +20,7 @@ class ThreadViewModel(
         SmsDatabase.get(app).keywordDao()
     )
 
-    /** 스레드 메시지 LiveData */
+    // 스레드 LiveData
     val messages: LiveData<List<SmsEntity>> = if (!isSpam) {
         repo.messages(address)
     } else {
@@ -29,19 +29,18 @@ class ThreadViewModel(
         }
     }
 
-    /** 전송 */
+    // 전송하기
     fun send(body: String) = viewModelScope.launch(Dispatchers.IO) {
         if (!isSpam) {
             repo.addNormal(SmsEntity(address = address, body = body, type = 2))
         }
     }
 
-    /** 개별 메시지 삭제 (일반만) */
+    // 개별 메시지 삭제
     fun delete(id: Long) = viewModelScope.launch(Dispatchers.IO) {
         if (!isSpam) repo.deleteMessage(id)
     }
 
-    /* ---------- Factory ---------- */
     class Factory(
         private val app: Application,
         private val address: String,

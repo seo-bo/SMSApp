@@ -10,16 +10,16 @@ import com.example.smsapp.repository.SmsRepository
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repo = SmsRepository(
-        SmsDatabase.get(app).smsDao(),      // 일반 SMS DAO
-        SmsDatabase.get(app).spamDao(),     // 스팸 DAO
-        SmsDatabase.get(app).keywordDao()   // 🔹 키워드 DAO (추가)
+        SmsDatabase.get(app).smsDao(),
+        SmsDatabase.get(app).spamDao(),
+        SmsDatabase.get(app).keywordDao()
     )
 
-    /** 스팸 · 일반 건수 */
+    // 스팸 / 일반 건수
     val spam:   LiveData<Int> = repo.totalSpamCount
     val normal: LiveData<Int> = repo.totalNormalCount
 
-    /** 전체 = 스팸 + 일반 */
+    // total
     val total: LiveData<Int> = MediatorLiveData<Int>().apply {
         var s = 0
         var n = 0

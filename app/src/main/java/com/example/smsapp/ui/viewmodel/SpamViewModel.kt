@@ -16,10 +16,10 @@ class SpamViewModel(app: Application) : AndroidViewModel(app) {
         SmsDatabase.get(app).keywordDao()
     )
 
-    /** 스팸함 “방” 리스트 */
+    // 스팸 방
     val rooms = repo.spamRooms
 
-    /** 스팸 대화(방) 삭제 */
+    // 스팸 대화방 삭제?
     fun deleteConversation(addr: String) = viewModelScope.launch(Dispatchers.IO) {
         repo.deleteSpamConversation(addr)
     }

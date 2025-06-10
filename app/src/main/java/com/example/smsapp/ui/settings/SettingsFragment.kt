@@ -28,7 +28,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSettingsBinding.bind(view)
 
-        /* ─ Toolbar ─ */
+        // 툴바
         val tb: MaterialToolbar = b.toolbar
         (requireActivity() as AppCompatActivity).setSupportActionBar(tb)
         (requireActivity() as AppCompatActivity)
@@ -40,7 +40,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         tb.setTitleTextColor(Color.BLACK)
         tb.isTitleCentered = true
 
-        /* ─ Insets ─ */
+        // insets
         ViewCompat.setOnApplyWindowInsetsListener(
             view.findViewById<CoordinatorLayout>(R.id.settingsRoot)
         ) { v, ins ->
@@ -49,22 +49,22 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             WindowInsetsCompat.CONSUMED
         }
 
-        /* ─ ViewModel ─ */
+        // ViewModel
         vm = ViewModelProvider(this)[SettingsViewModel::class.java]
         vm.total.observe(viewLifecycleOwner) { updateStats() }
         vm.spam.observe(viewLifecycleOwner)  { updateStats() }
 
-        /* ─ 로컬 스팸 차단 ─ */
+        // 로컬 스팸 차단
         val swLocal = b.swLocal as SwitchMaterial
         swLocal.isChecked = AppPrefs.isLocalFilterEnabled(requireContext())
         swLocal.setOnCheckedChangeListener { _, on ->
             AppPrefs.setLocalFilterEnabled(requireContext(), on)
         }
 
-        /* ─ 고급 스팸 차단 (미구현) ─ */
+        // 고급 스팸 차단
         b.swAdvanced.setOnCheckedChangeListener { _, _ -> }
 
-        /* ─ 키워드 화면 이동 ─ */
+        // 키워드 화면 이동하기
         b.btnBlacklist.setOnClickListener {
             val action = SettingsFragmentDirections
                 .actionSettingsFragmentToKeywordFragment(false)

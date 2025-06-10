@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MessageAdapter(
-    private val onLongPress: (SmsEntity, View) -> Unit        // ← 콜백
+    private val onLongPress: (SmsEntity, View) -> Unit
 ) : RecyclerView.Adapter<MessageAdapter.VH>() {
 
     private val items = mutableListOf<SmsEntity>()
@@ -28,13 +28,13 @@ class MessageAdapter(
             val ctx = b.root.context
             val parent = b.root as LinearLayout
 
-            if (m.type == 1) {                       // 수신
+            if (m.type == 1) {  // 수신
                 b.ivAvatar.visibility = View.VISIBLE
                 b.tvAddress.visibility = View.GONE
                 parent.gravity = Gravity.START
                 b.layoutBubble.background =
                     ContextCompat.getDrawable(ctx, R.drawable.bg_message_bubble)
-            } else {                                // 발신
+            } else  { // 발신
                 b.ivAvatar.visibility = View.INVISIBLE
                 b.tvAddress.visibility = View.GONE
                 parent.gravity = Gravity.END
@@ -44,7 +44,7 @@ class MessageAdapter(
             b.tvBody.text = m.body
             b.tvTime.text = fmt.format(Date(m.timestamp))
 
-            /* ─── 롱클릭 콜백 ─── */
+            // 콜백
             b.layoutBubble.setOnLongClickListener {
                 onLongPress(m, it)
                 true

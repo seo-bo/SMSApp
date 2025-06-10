@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         permHelper = PermissionHelper(this) {
-            // 퍼미션 승인 후, 단 한 번만 기존 SMS DB import
+            // 기존 SMS DB 가져오기
             val prefs = getSharedPreferences("smsapp_prefs", Context.MODE_PRIVATE)
             if (!prefs.getBoolean("import_done", false)) {
                 lifecycleScope.launch {
@@ -35,11 +35,11 @@ class MainActivity : AppCompatActivity() {
         }
         permHelper.ensureSmsPermissions(this)
 
-        // Android 10+ 기본 SMS 앱 권한 요청 (선택)
+        // 기본 SMS 앱 권한 요청
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val roleLauncher = registerForActivityResult(
                 ActivityResultContracts.StartActivityForResult()
-            ) { /* 처리 불필요 */ }
+            ) { }
 
             val rm = getSystemService(RoleManager::class.java)
             if (rm?.isRoleAvailable(RoleManager.ROLE_SMS) == true &&

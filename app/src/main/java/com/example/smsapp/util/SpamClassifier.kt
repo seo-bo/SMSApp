@@ -41,28 +41,28 @@ object SpamClassifier {
 
     fun isSpam(text: String): Boolean {
         return try {
-            // 1) 모델 실행해서 raw logit 얻어오기
+            // raw logit 얻기
             val (logitHam, logitSpam) = runModel(text)
 
-            // 2) softmax로 스팸 확률 계산
+            // softmax 계산
             val e0 = exp(logitHam)
             val e1 = exp(logitSpam)
             val probSpam = (e1 / (e0 + e1)).toFloat()
 
-            // 3) 룰 엔진 체크
+            // Rule Engine
             val lower = text.lowercase(Locale.getDefault())
             val ruleMatch = KEYWORDS.any { lower.contains(it) }
                     || PHONE_REGEX.matcher(text).find()
                     || URL_REGEX.matcher(text).find()
                     || text.count { it.toInt() in 0x1F300..0x1F6FF } >= 3
 
-            // 4) 최종 결과 결정
+            // 결과?
             val result = when {
                 probSpam >= SPAM_THRESHOLD            -> "SPAM (prob>=${SPAM_THRESHOLD})"
                 ruleMatch                             -> "SPAM (rule engine)"
                 else                                  -> "NOT SPAM"
             }
-            // ← 이 한 줄로 raw→prob→결과를 다 찍는다.
+            // catlog 용
             logLong(TAG, "ham=$logitHam spam=$logitSpam → probSpam=$probSpam → $result")
 
             result.startsWith("SPAM")
@@ -89,7 +89,7 @@ object SpamClassifier {
         ids[i] = cls.coerceIn(0L, vocabSize - 1); mask[i] = 1L; i++
         for (tok in tokens) {
             if (i >= seqLen - 1) break
-            // 토큰을 vocab에서 찾고, out-of-range면 클램핑
+            // 토큰 vocab.txt에서 탐색
             val rawId = vocab[tok]?.toLong() ?: unk
             val safeId = rawId.coerceIn(0L, vocabSize - 1)
             ids[i] = safeId
@@ -148,7 +148,7 @@ object SpamClassifier {
         }
     }
 
-    // 로그가 너무 길면 자동으로 잘라서 찍어주는 헬퍼
+    // 로그용
     private const val MAX_LOG_LEN = 1000
     private fun logLong(tag: String, msg: String) {
         if (msg.length <= MAX_LOG_LEN) {

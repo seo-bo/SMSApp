@@ -12,11 +12,9 @@ object SmsImporter {
     suspend fun importAll(ctx: Context) = withContext(Dispatchers.IO) {
         val cr      = ctx.contentResolver
         val msgs    = Telephony.Sms.Intents.getMessagesFromIntent(
-            // dummy intent → getMessagesFromIntent only works in BroadcastReceiver,
-            // 대신 content://sms 직접 조회
             android.content.Intent().apply { data = Telephony.Sms.CONTENT_URI }
         )
-        // API 보장 안 되므로 fallback to contentResolver
+        // API 보장 X
         val cursor = cr.query(
             Telephony.Sms.CONTENT_URI,
             arrayOf("address","body","date","type"),

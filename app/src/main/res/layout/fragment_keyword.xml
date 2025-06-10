@@ -8,7 +8,6 @@
     android:fitsSystemWindows="true"
     android:background="?attr/colorSurface">
 
-    <!-- ───── Toolbar ───── -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         style="@style/Widget.MaterialComponents.Toolbar.Primary"
@@ -16,14 +15,12 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"/>
 
-    <!-- ───── Content ───── -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize">
 
-        <!-- 입력 카드 ↓↓↓ -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,7 +59,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 키워드 목록 -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvKeyword"
             android:layout_width="match_parent"

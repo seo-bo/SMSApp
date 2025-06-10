@@ -9,51 +9,30 @@ import java.util.*
 import java.util.ArrayDeque
 import java.util.HashMap
 
-/**
- *  ┌────────────────────────────────────────┐
- *  │   화이트 전용 Trie  |   블랙 전용 Trie  │  ← 두 개를 따로 둠
- *  └────────────────────────────────────────┘
- *
- *  • 매칭 순서
- *      1) 화이트 키워드가 1개라도 hit  →  무조건 통과
- *      2) 블랙 키워드 hit              →  차단
- *      3) 둘 다 miss                   →  SpamClassifier 에게 위임
- *
- *  • init(ctx)  : suspend, 언제든 호출 가능 (중복 호출 시 0-cost)
- *  • invalidate(): 키워드 CRUD 시 호출 → 다음 init 때 재빌드
- *  • match(text) : 화이트/블랙 hit 여부 반환
- */
 object KeywordMatcher {
 
-    /* ────── 노드 정의 ────── */
     private class Node {
         val next: MutableMap<Char, Node> = HashMap()
         var fail: Node? = null
-        var isEnd = false               // 끝 토큰 여부
+        var isEnd = false
     }
 
-    /* ────── 두 개의 Trie ────── */
+    // White Trie / Black Trie
     private object White { val root = Node() }
     private object Black { val root = Node() }
 
     @Volatile private var built = false
 
-    /* ─────────────────────────────────────────
-       1) init(ctx)      – suspend / 중복호출 허용
-       2) invalidate()   – 키워드 변경 시 호출
-    ───────────────────────────────────────── */
-
     suspend fun init(ctx: Context) = withContext(Dispatchers.IO) {
-        if (built) return@withContext            // fast-path
+        if (built) return@withContext
 
-        /* ① DB 목록 읽기 (suspend 지점) */
+        // 읽기
         val list = SmsDatabase.get(ctx).keywordDao().getAll()
 
-        /* ② 동기화 범위를 최소화하여 빌드 */
         synchronized(this@KeywordMatcher) {
-            if (built) return@synchronized       // double-check
+            if (built) return@synchronized
 
-            // 기존 트리 초기화
+            // 트라이 실패 링크 초기화
             White.root.next.clear(); White.root.fail = null
             Black.root.next.clear(); Black.root.fail = null
 
@@ -72,7 +51,7 @@ object KeywordMatcher {
         built = false
     }
 
-    /* ────── 매칭 함수 ────── */
+    // 매칭?
     fun match(text: String): Result {
         if (!built) throw IllegalStateException("KeywordMatcher.init() 먼저 호출해야 합니다")
 
@@ -85,15 +64,13 @@ object KeywordMatcher {
 
     data class Result(val hasWhite: Boolean, val hasBlack: Boolean)
 
-    /* ────── 내부 헬퍼 ────── */
-
     private fun insert(word: String, isWhite: Boolean) {
         var node = if (isWhite) White.root else Black.root
         for (ch in word) node = node.next.getOrPut(ch) { Node() }
         node.isEnd = true
     }
 
-    /** Aho–Corasick 실패 링크 구성 */
+    // bfs로 fail link 구성
     private fun buildAC(root: Node) {
         val q: ArrayDeque<Node> = ArrayDeque()
         root.fail = root
@@ -107,13 +84,13 @@ object KeywordMatcher {
                 var f = cur.fail
                 while (f !== root && c !in f!!.next) f = f.fail
                 nxt.fail = if (c in f!!.next) f.next[c]!! else root
-                nxt.isEnd = nxt.isEnd || nxt.fail!!.isEnd       // 출력 병합
+                nxt.isEnd = nxt.isEnd || nxt.fail!!.isEnd
                 q.add(nxt)
             }
         }
     }
 
-    /** 텍스트 1회 검색 → hit 여부 */
+    // hit?
     private fun search(text: String, root: Node): Boolean {
         var cur = root
         for (c in text) {

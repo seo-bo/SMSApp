@@ -8,7 +8,6 @@
     android:fitsSystemWindows="true"
     android:background="@color/surface">
 
-    <!-- ───────── Toolbar ───────── -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         style="@style/Widget.MaterialComponents.Toolbar.Primary"
@@ -17,7 +16,6 @@
         android:background="?attr/colorPrimary"
         app:navigationIconTint="@color/black"/>
 
-    <!-- ───────── Scroll 영역 ───────── -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -30,7 +28,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- ───── 로컬 스팸 차단 ───── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -75,7 +72,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ───── 고급 스팸 차단 ───── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -120,7 +116,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ───── 통계 텍스트 ───── -->
             <TextView
                 android:id="@+id/tvTotal"
                 android:layout_width="wrap_content"
@@ -136,7 +131,6 @@
                 android:textColor="#FF3B30"
                 android:layout_gravity="center"/>
 
-            <!-- ───── 원형 그래프 + 퍼센트 ───── -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
@@ -166,7 +160,6 @@
                     android:textSize="28sp"/>
             </FrameLayout>
 
-            <!-- ───── 블랙리스트 버튼 ───── -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btnBlacklist"
                 android:layout_width="match_parent"
@@ -199,7 +192,6 @@
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ───── 화이트리스트 버튼 ───── -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btnWhitelist"
                 android:layout_width="match_parent"

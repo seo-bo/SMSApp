@@ -18,23 +18,21 @@ class ConvViewModel(app: Application) : AndroidViewModel(app) {
         SmsDatabase.get(app).keywordDao()
     )
 
-    /** 대화방 목록 LiveData */
+    // 대화방 LiveData
     val rooms = repo.conversations
 
-    /** SMS 보내기 */
+    // 문자 보내기
     fun sendSms(phone: String, body: String) = viewModelScope.launch(Dispatchers.IO) {
         SmsManager.getDefault().sendTextMessage(phone, null, body, null, null)
         repo.addNormal(SmsEntity(address = phone, body = body, type = 2))
     }
 
-    /** 대화방 삭제 */
+    // 대화방 삭제
     fun deleteConversation(addr: String) = viewModelScope.launch(Dispatchers.IO) {
         repo.deleteConversation(addr)
     }
 
-    /* ───────────────────────────────────────────────
-       ⬇️  Undo(복원)용:  기존 Repo 의 addNormal 래퍼
-       ─────────────────────────────────────────────── */
+    // Undo
     fun addNormal(e: SmsEntity) = viewModelScope.launch(Dispatchers.IO) {
         repo.addNormal(e)
     }

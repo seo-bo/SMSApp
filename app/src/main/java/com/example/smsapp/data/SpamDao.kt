@@ -37,7 +37,7 @@ interface SpamDao {
     @Query("DELETE FROM spam WHERE address = :addr")
     suspend fun deleteConversation(addr: String)
 
-    /* ───── Settings 화면용 스팸 건수 ───── */
+   // 화면용 Spam
     @Query("SELECT COUNT(*) FROM spam")
     fun spamCount(): LiveData<Int>
 }

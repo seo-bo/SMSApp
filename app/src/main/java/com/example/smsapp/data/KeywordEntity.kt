@@ -11,6 +11,6 @@ import androidx.room.PrimaryKey
 data class KeywordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val word: String,
-    /** true  → 화이트리스트,  false → 블랙리스트 */
+    // true -> White / false -> Black
     val isWhitelist: Boolean
 )

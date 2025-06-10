@@ -18,7 +18,7 @@ class SMSReceiver : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
 
-        /* ─── 1. 여러 segment 합치기 ─── */
+        // 조각 합치기
         val parts = Telephony.Sms.Intents.getMessagesFromIntent(intent)
         if (parts.isEmpty()) return
         val address   = parts[0].originatingAddress ?: return
@@ -29,12 +29,11 @@ class SMSReceiver : BroadcastReceiver() {
         val smsDao  = db.smsDao()
         val spamDao = db.spamDao()
 
-        /* ─── 2. IO 코루틴 ─── */
+        // 코루틴
         CoroutineScope(Dispatchers.IO).launch {
-            /* 2-1) 키워드 매처 초기화 보장 (중복 호출 OK) */
             KeywordMatcher.init(ctx)
 
-            /* 2-2) 화이트/블랙 우선순위 검사 */
+            // priority 체크
             val res      = KeywordMatcher.match(body)
             val localOn  = AppPrefs.isLocalFilterEnabled(ctx)
             val isSpam   = when {
@@ -44,7 +43,7 @@ class SMSReceiver : BroadcastReceiver() {
                 else               -> false
             }
 
-            /* 2-3) DB 저장 */
+            // DB
             if (isSpam) {
                 spamDao.insert(SpamEntity(address = address, body = body, timestamp = timestamp))
             } else {
