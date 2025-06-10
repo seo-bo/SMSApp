@@ -1,3 +1,1 @@
-AI 스팸 필터 앱 만들기(Android)
-- Android와 TFLite(KoBERT) 연동하기
-- 기본적인 SMS 작동하는 앱 만들기
+2025 창의공학설계 프로젝트에서 Android와 TFLite(KoBERT)를 연동해 스팸 필터를 구현하고, 이를 SMS 앱에 적용한 코드입니다.
